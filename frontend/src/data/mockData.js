@@ -1,2 +1,0 @@
-export const campusSnapshot = { energyUsedKwh: 847, energyCost: 124.8, carbonAvoidedKg: 426, peakDemandKw: 186 }
-export const buildings = [{ name: 'Innovation Hall', load: 82 }, { name: 'Student Commons', load: 64 }, { name: 'Research Center', load: 58 }]
