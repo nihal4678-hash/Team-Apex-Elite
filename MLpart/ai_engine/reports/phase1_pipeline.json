@@ -1,0 +1,441 @@
+{
+  "stage_2": {
+    "stage": 2,
+    "name": "Live IoT Sensor Simulation Agent",
+    "validation": {
+      "stage": "stage2_iot_simulation",
+      "passed": true,
+      "checks": [
+        {
+          "name": "min_records",
+          "ok": true,
+          "detail": "n=363168"
+        },
+        {
+          "name": "timestamps_parseable",
+          "ok": "True",
+          "detail": "nulls=0"
+        },
+        {
+          "name": "no_future_clock_errors",
+          "ok": "True",
+          "detail": ""
+        },
+        {
+          "name": "energy_positive",
+          "ok": "True",
+          "detail": "min=0.00375"
+        },
+        {
+          "name": "occupancy_le_capacity",
+          "ok": "True",
+          "detail": "violations=0"
+        },
+        {
+          "name": "occupancy_non_negative",
+          "ok": "True",
+          "detail": ""
+        }
+      ],
+      "pending_issues": []
+    },
+    "paths": {
+      "sensor_readings": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\sensor_readings.csv"
+    },
+    "summary": {
+      "rows": 363168,
+      "rooms": 97,
+      "start": "2025-07-01 00:00:00",
+      "end": "2025-08-08 23:45:00",
+      "total_energy_kwh": 156153.47831
+    },
+    "pending_issues": []
+  },
+  "stage_3": {
+    "stage": 3,
+    "name": "Sensor Preprocessing Agent",
+    "validation": {
+      "stage": "stage3_preprocessing",
+      "passed": true,
+      "checks": [
+        {
+          "name": "no_missing_values",
+          "ok": true,
+          "detail": "nulls=0"
+        },
+        {
+          "name": "no_duplicate_room_timestamps",
+          "ok": true,
+          "detail": "dupes=0"
+        },
+        {
+          "name": "feature_columns_present",
+          "ok": true,
+          "detail": "missing=[]"
+        }
+      ],
+      "pending_issues": []
+    },
+    "paths": {
+      "processed": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\processed\\processed_sensor_data.csv",
+      "feature_pipeline": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\feature_pipeline.pkl"
+    },
+    "summary": {
+      "rows": 363168,
+      "columns": [
+        "timestamp",
+        "building_id",
+        "building_name",
+        "room_id",
+        "category",
+        "occupancy",
+        "room_capacity",
+        "indoor_temperature_c",
+        "outdoor_temperature_c",
+        "humidity_pct",
+        "lights_status",
+        "fans_status",
+        "ac_status",
+        "projector_status",
+        "computer_usage",
+        "computers_active",
+        "voltage_v",
+        "current_a",
+        "power_factor",
+        "frequency_hz",
+        "power_w",
+        "energy_kwh",
+        "hour",
+        "day_of_week",
+        "is_weekend",
+        "is_working_hours",
+        "occupancy_ratio",
+        "temperature_diff_c",
+        "active_device_count",
+        "cooling_load_index",
+        "month",
+        "date"
+      ]
+    },
+    "pending_issues": []
+  },
+  "stage_4": {
+    "stage": 4,
+    "name": "Exploratory Data Analysis Agent",
+    "validation": {
+      "stage": "stage4_eda",
+      "passed": true,
+      "checks": [
+        {
+          "name": "at_least_20_charts",
+          "ok": true,
+          "detail": "n=24"
+        },
+        {
+          "name": "every_chart_explained",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "pdf_written",
+          "ok": true,
+          "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage4_eda_report.pdf"
+        }
+      ],
+      "pending_issues": []
+    },
+    "paths": {
+      "pdf": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage4_eda_report.pdf",
+      "markdown": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage4_eda_summary.md",
+      "notebook": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\notebooks\\04_eda.ipynb"
+    },
+    "summary": {
+      "charts": 24,
+      "rows": 363168
+    },
+    "captions": [
+      {
+        "title": "1. Daily campus energy trend",
+        "observation": "Campus load shows weekday peaks and exam-period lift in library/lab demand."
+      },
+      {
+        "title": "2. Building-wise consumption",
+        "observation": "Hostels and computer labs dominate total energy due to occupancy duration and IT/HVAC load."
+      },
+      {
+        "title": "3. Building \u00d7 hour energy heatmap",
+        "observation": "Academic blocks peak 09:00\u201316:00; hostels invert with night-time occupancy."
+      },
+      {
+        "title": "4. Peak hour analysis",
+        "observation": "Mean interval energy rises through late morning and remains elevated until evening hostel load."
+      },
+      {
+        "title": "5. Weather vs energy",
+        "observation": "Higher outdoor temperature correlates with AC-driven energy, especially above ~29\u00b0C."
+      },
+      {
+        "title": "6. Occupancy vs energy",
+        "observation": "Energy scales with occupancy but HVAC/IT rooms sit above the occupancy-only trend."
+      },
+      {
+        "title": "7. Device contribution proxy",
+        "observation": "Air-conditioning is the largest controllable contributor whenever outdoor temperature is high."
+      },
+      {
+        "title": "8. Weekly / monthly-scale trend",
+        "observation": "Weekly totals are stable with a late-July exam-window increase."
+      },
+      {
+        "title": "9. Weekend vs weekday",
+        "observation": "Weekday academic/admin load exceeds weekends; hostels remain relatively sticky."
+      },
+      {
+        "title": "10. Top-20 room utilization",
+        "observation": "Library halls and cafeteria dining rooms show the highest average occupancy ratios."
+      },
+      {
+        "title": "11. Category mean energy intensity",
+        "observation": "Computer labs have the highest mean intensity due to dense IT load plus HVAC."
+      },
+      {
+        "title": "12. Working-hours energy split",
+        "observation": "Working hours raise academic energy; after-hours residual load is a wastage target."
+      },
+      {
+        "title": "13. Humidity vs energy",
+        "observation": "Humidity is weakly associated with energy; temperature and occupancy dominate."
+      },
+      {
+        "title": "14. Active devices vs energy",
+        "observation": "Mean energy increases monotonically with concurrently active end-use devices."
+      },
+      {
+        "title": "15. Cooling load index vs energy",
+        "observation": "Cooling load index is a strong engineered predictor of HVAC-dominated intervals."
+      },
+      {
+        "title": "16. Power factor distribution",
+        "observation": "Power factor clusters near 0.90\u20130.96; AC-on intervals pull PF slightly lower."
+      },
+      {
+        "title": "17. Voltage distribution",
+        "observation": "Branch voltage stays around the 230 V Indian nominal with realistic feeder noise."
+      },
+      {
+        "title": "18. Indoor vs outdoor temperature",
+        "observation": "Indoor temperatures are suppressed relative to outdoor when HVAC is active."
+      },
+      {
+        "title": "19. Day-of-week energy",
+        "observation": "Monday\u2013Friday academic schedules produce higher campus totals than weekends."
+      },
+      {
+        "title": "20. Occupancy heatmap by category",
+        "observation": "Hostels fill overnight; cafeteria peaks at lunch; library occupancy rises in the exam window."
+      },
+      {
+        "title": "21. Mean building utilization",
+        "observation": "Admin utilization is high during workdays but low absolute energy due to smaller rooms."
+      },
+      {
+        "title": "22. AC operating profile",
+        "observation": "AC duty cycle tracks hot working hours \u2014 the primary HVAC optimization lever."
+      },
+      {
+        "title": "23. Empty-room lighting wastage share",
+        "observation": "About 0.12% of intervals show lights on with zero occupancy \u2014 a lighting-control target."
+      },
+      {
+        "title": "24. Building weekend vs weekday intensity",
+        "observation": "Academic buildings drop sharply on weekends; hostels do not, confirming schedule-aware controls."
+      }
+    ],
+    "pending_issues": []
+  },
+  "stage_5": {
+    "stage": 5,
+    "name": "Forecasting Agent",
+    "validation": {
+      "stage": "stage5_forecasting",
+      "passed": true,
+      "checks": [
+        {
+          "name": "model_serialized",
+          "ok": true,
+          "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\forecast_model.pkl"
+        },
+        {
+          "name": "predictions_written",
+          "ok": true,
+          "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\forecast_predictions.csv"
+        },
+        {
+          "name": "best_model_selected",
+          "ok": true,
+          "detail": "XGBoost"
+        },
+        {
+          "name": "r2_positive",
+          "ok": true,
+          "detail": "0.9810072464858429"
+        }
+      ],
+      "pending_issues": []
+    },
+    "best_model": "XGBoost",
+    "metrics": {
+      "LinearRegression": {
+        "mae": 7.7703700512979195,
+        "rmse": 14.198110846106802,
+        "r2": 0.5923131864574903,
+        "mape": 44.48651199085416
+      },
+      "RandomForest": {
+        "mae": 1.2293579869442544,
+        "rmse": 3.9819686120456326,
+        "r2": 0.967932787888482,
+        "mape": 8.064021570529055
+      },
+      "XGBoost": {
+        "mae": 1.1287916595952971,
+        "rmse": 3.0645110816614425,
+        "r2": 0.9810072464858429,
+        "mape": 7.047625548528782
+      }
+    },
+    "paths": {
+      "forecast_model": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\forecast_model.pkl",
+      "forecast_predictions": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\forecast_predictions.csv",
+      "feature_importance": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\feature_importance.csv"
+    },
+    "pending_issues": []
+  },
+  "stage_6": {
+    "stage": 6,
+    "name": "Anomaly Detection Agent",
+    "validation": {
+      "stage": "stage6_anomaly",
+      "passed": true,
+      "checks": [
+        {
+          "name": "model_saved",
+          "ok": true,
+          "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\anomaly_model.pkl"
+        },
+        {
+          "name": "alert_schema",
+          "ok": true,
+          "detail": "[]"
+        },
+        {
+          "name": "every_anomaly_explained",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "alerts_nonempty",
+          "ok": true,
+          "detail": "n=4234"
+        }
+      ],
+      "pending_issues": []
+    },
+    "summary": {
+      "scored_rows": 60000,
+      "alerts": 4234,
+      "injected_fault_counts": {
+        "none": 58400,
+        "projector_on_empty_room": 400,
+        "lights_on_empty_room": 400,
+        "ac_on_after_hours": 400,
+        "sudden_energy_spike": 400
+      }
+    },
+    "paths": {
+      "anomaly_model": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\anomaly_model.pkl",
+      "anomaly_predictions": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\anomaly_predictions.csv",
+      "alerts": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\alerts.csv"
+    },
+    "pending_issues": []
+  },
+  "stage_7": {
+    "stage": 7,
+    "name": "Energy Optimization Agent",
+    "validation": {
+      "stage": "stage7_optimization",
+      "passed": true,
+      "checks": [
+        {
+          "name": "recommendations_exist",
+          "ok": true,
+          "detail": "n=7"
+        },
+        {
+          "name": "every_recommendation_has_impact",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "priority_present",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "pending_issues": []
+    },
+    "summary": {
+      "n_recommendations": 7,
+      "total_energy_saved_kwh": 6347.03,
+      "total_money_saved_inr": 55536.51,
+      "total_co2_reduced_kg": 5204.564
+    },
+    "paths": {
+      "recommendations": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\recommendations.json",
+      "optimization_summary": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\optimization_summary.csv"
+    },
+    "pending_issues": []
+  },
+  "stage_8": {
+    "stage": 8,
+    "name": "Sustainability Agent",
+    "validation": {
+      "stage": "stage8_sustainability",
+      "passed": true,
+      "checks": [
+        {
+          "name": "metrics_written",
+          "ok": true,
+          "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\sustainability_metrics.csv"
+        },
+        {
+          "name": "leaderboard_written",
+          "ok": true,
+          "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\building_scores.csv"
+        },
+        {
+          "name": "optimization_consistency_lt_1pct",
+          "ok": "True",
+          "detail": "rel_err=0.0000"
+        },
+        {
+          "name": "scores_in_0_100",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "pending_issues": []
+    },
+    "summary": {
+      "energy_kwh": 6347.0300000000025,
+      "money_inr": 55536.51250000001,
+      "co2_kg": 5204.5646000000015
+    },
+    "paths": {
+      "sustainability_metrics": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\sustainability_metrics.csv",
+      "building_scores": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\building_scores.csv",
+      "weekly_report": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\weekly_report.json"
+    },
+    "pending_issues": []
+  }
+}

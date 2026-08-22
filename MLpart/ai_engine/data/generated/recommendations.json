@@ -1,0 +1,145 @@
+[
+  {
+    "recommendation_id": "REC-HVAC-001",
+    "category": "hvac_optimization",
+    "title": "After-hours HVAC setback",
+    "description": "Lock AC except hostels and exam-critical labs after 18:00; raise setpoint to 28\u00b0C.",
+    "priority_score": 98,
+    "buildings": [
+      "ADM",
+      "BLK-A",
+      "BLK-B",
+      "BLK-C",
+      "CAF",
+      "HST-B",
+      "HST-G",
+      "LAB-CSE"
+    ],
+    "energy_saved_kwh": 549.213,
+    "money_saved_inr": 4805.61,
+    "co2_reduced_kg": 450.355,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82,
+    "campus": "Vignan University"
+  },
+  {
+    "recommendation_id": "REC-LGT-001",
+    "category": "lighting_optimization",
+    "title": "Occupancy-based lighting shutoff",
+    "description": "Auto-off lights in academic/admin rooms when occupancy is zero for 10 minutes.",
+    "priority_score": 92,
+    "buildings": [
+      "ADM",
+      "BLK-A",
+      "BLK-B",
+      "BLK-C",
+      "CAF",
+      "HST-B",
+      "HST-G",
+      "LAB-CSE"
+    ],
+    "energy_saved_kwh": 202.159,
+    "money_saved_inr": 1768.89,
+    "co2_reduced_kg": 165.77,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82,
+    "campus": "Vignan University"
+  },
+  {
+    "recommendation_id": "REC-HVAC-002",
+    "category": "hvac_optimization",
+    "title": "Pre-cool labs before peak heat",
+    "description": "Pre-cool CSE labs 45 minutes before occupancy on days forecast \u2265 33\u00b0C.",
+    "priority_score": 88,
+    "buildings": [
+      "LAB-CSE",
+      "LIB"
+    ],
+    "energy_saved_kwh": 2036.86,
+    "money_saved_inr": 17822.52,
+    "co2_reduced_kg": 1670.225,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82,
+    "campus": "Vignan University"
+  },
+  {
+    "recommendation_id": "REC-LOAD-001",
+    "category": "load_shifting",
+    "title": "Shift lab batch jobs and laundry to off-peak",
+    "description": "Move non-critical computer-lab imaging and hostel laundry to 06:00\u201310:00.",
+    "priority_score": 85,
+    "buildings": [
+      "LAB-CSE",
+      "HST-B",
+      "HST-G"
+    ],
+    "energy_saved_kwh": 1137.216,
+    "money_saved_inr": 9950.64,
+    "co2_reduced_kg": 932.517,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82,
+    "campus": "Vignan University"
+  },
+  {
+    "recommendation_id": "REC-SCH-001",
+    "category": "room_scheduling_optimization",
+    "title": "Consolidate low-utilization classrooms",
+    "description": "Shift small sections into fewer rooms in the lowest-utilization academic blocks.",
+    "priority_score": 80,
+    "buildings": [
+      "BLK-A",
+      "BLK-C",
+      "BLK-B"
+    ],
+    "energy_saved_kwh": 1873.842,
+    "money_saved_inr": 16396.12,
+    "co2_reduced_kg": 1536.55,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82,
+    "campus": "Vignan University"
+  },
+  {
+    "recommendation_id": "REC-FAN-001",
+    "category": "fan_optimization",
+    "title": "Stage fans with occupancy bands",
+    "description": "Run 50% of ceiling fans when occupancy ratio < 0.25 in academic rooms.",
+    "priority_score": 74,
+    "buildings": [
+      "ADM",
+      "BLK-A",
+      "BLK-B",
+      "BLK-C",
+      "CAF",
+      "LAB-CSE"
+    ],
+    "energy_saved_kwh": 545.315,
+    "money_saved_inr": 4771.51,
+    "co2_reduced_kg": 447.158,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82,
+    "campus": "Vignan University"
+  },
+  {
+    "recommendation_id": "REC-AV-001",
+    "category": "device_optimization",
+    "title": "Empty-room projector / AV power-down",
+    "description": "Tie projector power to room booking end events.",
+    "priority_score": 70,
+    "buildings": [
+      "ADM",
+      "BLK-A",
+      "BLK-B",
+      "BLK-C",
+      "CAF",
+      "HST-B",
+      "HST-G",
+      "LAB-CSE"
+    ],
+    "energy_saved_kwh": 2.425,
+    "money_saved_inr": 21.22,
+    "co2_reduced_kg": 1.989,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82,
+    "campus": "Vignan University"
+  }
+]

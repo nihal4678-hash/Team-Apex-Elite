@@ -1,0 +1,28 @@
+# Environment Variables & Secret API Keys (CRITICAL: NEVER COMMIT TO GIT)
+.env
+*.env
+.env.local
+.env.production
+
+# Database & SQLite files
+*.db
+*.sqlite3
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Node & Frontend Build Artifacts
+node_modules/
+dist/
+dist-ssr/
+
+# Large Datasets (>50MB raw/processed files rejected by GitHub)
+MLpart/ai_engine/data/raw/
+MLpart/ai_engine/data/processed/
+
+# MLflow & Logs
+mlruns/
+*.log

@@ -1,0 +1,110 @@
+{
+  "campus": {
+    "name": "Vignan University",
+    "legal_name": "Vignan's Foundation for Science, Technology & Research",
+    "location": "Vadlamudi, Guntur District, Andhra Pradesh, India",
+    "latitude": 16.2347,
+    "longitude": 80.5516,
+    "timezone": "Asia/Kolkata",
+    "grid_voltage_v": 230.0,
+    "grid_frequency_hz": 50.0,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82
+  },
+  "weekly": [
+    {
+      "week": "2025-06-30/2025-07-06",
+      "energy_kwh": 22169.42812,
+      "energy_saved_kwh": 901.1008072528648,
+      "money_saved_inr": 7884.632063462566,
+      "co2_reduced_kg": 738.9026619473491,
+      "sustainability_score": 68.47768641644845
+    },
+    {
+      "week": "2025-07-07/2025-07-13",
+      "energy_kwh": 26383.48558,
+      "energy_saved_kwh": 1072.3858110184897,
+      "money_saved_inr": 9383.375846411785,
+      "co2_reduced_kg": 879.3563650351615,
+      "sustainability_score": 68.09757385141864
+    },
+    {
+      "week": "2025-07-14/2025-07-20",
+      "energy_kwh": 26985.85533,
+      "energy_saved_kwh": 1096.8697925200254,
+      "money_saved_inr": 9597.610684550222,
+      "co2_reduced_kg": 899.4332298664208,
+      "sustainability_score": 67.58429563728122
+    },
+    {
+      "week": "2025-07-21/2025-07-27",
+      "energy_kwh": 27553.49454,
+      "energy_saved_kwh": 1119.9421129962548,
+      "money_saved_inr": 9799.49348871723,
+      "co2_reduced_kg": 918.3525326569288,
+      "sustainability_score": 67.09554936839874
+    },
+    {
+      "week": "2025-07-28/2025-08-03",
+      "energy_kwh": 30614.75073,
+      "energy_saved_kwh": 1244.3702402842237,
+      "money_saved_inr": 10888.239602486958,
+      "co2_reduced_kg": 1020.3835970330633,
+      "sustainability_score": 64.49532200233558
+    },
+    {
+      "week": "2025-08-04/2025-08-10",
+      "energy_kwh": 22446.46401,
+      "energy_saved_kwh": 912.3612359281442,
+      "money_saved_inr": 7983.160814371262,
+      "co2_reduced_kg": 748.1362134610782,
+      "sustainability_score": 63.896090938360295
+    }
+  ],
+  "monthly_savings": {
+    "energy_kwh": 6347.0300000000025,
+    "money_inr": 55536.51250000001,
+    "co2_kg": 5204.5646000000015
+  },
+  "green_leaderboard": [
+    {
+      "leaderboard_rank": 1,
+      "building_id": "HST-G",
+      "building_name": "Girls Hostel \u2014 Vasishta Block",
+      "efficiency_score": 86.54063979737204,
+      "energy_kwh": 14534.69494
+    },
+    {
+      "leaderboard_rank": 2,
+      "building_id": "HST-B",
+      "building_name": "Boys Hostel \u2014 Nagarjuna Block",
+      "efficiency_score": 84.15195386763628,
+      "energy_kwh": 17067.08821
+    },
+    {
+      "leaderboard_rank": 3,
+      "building_id": "ADM",
+      "building_name": "Administrative Block",
+      "efficiency_score": 59.586415213640656,
+      "energy_kwh": 9509.96429
+    },
+    {
+      "leaderboard_rank": 4,
+      "building_id": "CAF",
+      "building_name": "Central Cafeteria",
+      "efficiency_score": 55.24714920937661,
+      "energy_kwh": 7417.00489
+    },
+    {
+      "leaderboard_rank": 5,
+      "building_id": "LIB",
+      "building_name": "Central Library",
+      "efficiency_score": 55.18402462517293,
+      "energy_kwh": 20297.62874
+    }
+  ],
+  "optimization_alignment": {
+    "opt_energy_saved_kwh": 6347.03,
+    "sustainability_energy_saved_kwh": 6347.0300000000025
+  }
+}

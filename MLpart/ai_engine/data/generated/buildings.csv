@@ -1,0 +1,10 @@
+building_id,building_name,category,area_sqm,solar_pv_installed,floors,room_count,hvac_available,campus,latitude,longitude
+BLK-A,Academic Block A — Engineering,academic,14030.25,True,4,16,True,Vignan University,16.2347,80.5516
+BLK-B,Academic Block B — Sciences,academic,10490.7,True,4,12,True,Vignan University,16.2347,80.5516
+BLK-C,Academic Block C — Management & Humanities,academic,9936.96,True,3,9,True,Vignan University,16.2347,80.5516
+LAB-CSE,Computer Science Laboratories (Building E),computer_lab,6943.33,False,3,9,True,Vignan University,16.2347,80.5516
+LIB,Central Library (Building F),library,4722.08,False,3,6,True,Vignan University,16.2347,80.5516
+HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,12889.91,True,4,16,False,Vignan University,16.2347,80.5516
+HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,10747.75,True,4,16,False,Vignan University,16.2347,80.5516
+ADM,Administrative Block (Building G),admin,2694.82,True,3,9,True,Vignan University,16.2347,80.5516
+CAF,Central Complex & Cafeteria (Building D),cafeteria,39460.53,True,2,4,True,Vignan University,16.2347,80.5516

@@ -1,0 +1,134 @@
+{
+  "stage": 4,
+  "name": "Exploratory Data Analysis Agent",
+  "validation": {
+    "stage": "stage4_eda",
+    "passed": true,
+    "checks": [
+      {
+        "name": "at_least_20_charts",
+        "ok": true,
+        "detail": "n=24"
+      },
+      {
+        "name": "every_chart_explained",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "pdf_written",
+        "ok": true,
+        "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage4_eda_report.pdf"
+      }
+    ],
+    "pending_issues": []
+  },
+  "paths": {
+    "pdf": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage4_eda_report.pdf",
+    "markdown": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage4_eda_summary.md",
+    "notebook": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\notebooks\\04_eda.ipynb"
+  },
+  "summary": {
+    "charts": 24,
+    "rows": 363168
+  },
+  "captions": [
+    {
+      "title": "1. Daily campus energy trend",
+      "observation": "Campus load shows weekday peaks and exam-period lift in library/lab demand."
+    },
+    {
+      "title": "2. Building-wise consumption",
+      "observation": "Hostels and computer labs dominate total energy due to occupancy duration and IT/HVAC load."
+    },
+    {
+      "title": "3. Building \u00d7 hour energy heatmap",
+      "observation": "Academic blocks peak 09:00\u201316:00; hostels invert with night-time occupancy."
+    },
+    {
+      "title": "4. Peak hour analysis",
+      "observation": "Mean interval energy rises through late morning and remains elevated until evening hostel load."
+    },
+    {
+      "title": "5. Weather vs energy",
+      "observation": "Higher outdoor temperature correlates with AC-driven energy, especially above ~29\u00b0C."
+    },
+    {
+      "title": "6. Occupancy vs energy",
+      "observation": "Energy scales with occupancy but HVAC/IT rooms sit above the occupancy-only trend."
+    },
+    {
+      "title": "7. Device contribution proxy",
+      "observation": "Air-conditioning is the largest controllable contributor whenever outdoor temperature is high."
+    },
+    {
+      "title": "8. Weekly / monthly-scale trend",
+      "observation": "Weekly totals are stable with a late-July exam-window increase."
+    },
+    {
+      "title": "9. Weekend vs weekday",
+      "observation": "Weekday academic/admin load exceeds weekends; hostels remain relatively sticky."
+    },
+    {
+      "title": "10. Top-20 room utilization",
+      "observation": "Library halls and cafeteria dining rooms show the highest average occupancy ratios."
+    },
+    {
+      "title": "11. Category mean energy intensity",
+      "observation": "Computer labs have the highest mean intensity due to dense IT load plus HVAC."
+    },
+    {
+      "title": "12. Working-hours energy split",
+      "observation": "Working hours raise academic energy; after-hours residual load is a wastage target."
+    },
+    {
+      "title": "13. Humidity vs energy",
+      "observation": "Humidity is weakly associated with energy; temperature and occupancy dominate."
+    },
+    {
+      "title": "14. Active devices vs energy",
+      "observation": "Mean energy increases monotonically with concurrently active end-use devices."
+    },
+    {
+      "title": "15. Cooling load index vs energy",
+      "observation": "Cooling load index is a strong engineered predictor of HVAC-dominated intervals."
+    },
+    {
+      "title": "16. Power factor distribution",
+      "observation": "Power factor clusters near 0.90\u20130.96; AC-on intervals pull PF slightly lower."
+    },
+    {
+      "title": "17. Voltage distribution",
+      "observation": "Branch voltage stays around the 230 V Indian nominal with realistic feeder noise."
+    },
+    {
+      "title": "18. Indoor vs outdoor temperature",
+      "observation": "Indoor temperatures are suppressed relative to outdoor when HVAC is active."
+    },
+    {
+      "title": "19. Day-of-week energy",
+      "observation": "Monday\u2013Friday academic schedules produce higher campus totals than weekends."
+    },
+    {
+      "title": "20. Occupancy heatmap by category",
+      "observation": "Hostels fill overnight; cafeteria peaks at lunch; library occupancy rises in the exam window."
+    },
+    {
+      "title": "21. Mean building utilization",
+      "observation": "Admin utilization is high during workdays but low absolute energy due to smaller rooms."
+    },
+    {
+      "title": "22. AC operating profile",
+      "observation": "AC duty cycle tracks hot working hours \u2014 the primary HVAC optimization lever."
+    },
+    {
+      "title": "23. Empty-room lighting wastage share",
+      "observation": "About 0.12% of intervals show lights on with zero occupancy \u2014 a lighting-control target."
+    },
+    {
+      "title": "24. Building weekend vs weekday intensity",
+      "observation": "Academic buildings drop sharply on weekends; hostels do not, confirming schedule-aware controls."
+    }
+  ],
+  "pending_issues": []
+}

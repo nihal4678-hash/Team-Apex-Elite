@@ -1,0 +1,42 @@
+{
+  "stage": 7,
+  "name": "Optimization & Actionable Recommendation Agent",
+  "validation": {
+    "stage": "stage7_optimization",
+    "passed": true,
+    "checks": [
+      {
+        "name": "recommendations_nonempty",
+        "ok": true,
+        "detail": "n=6"
+      },
+      {
+        "name": "valid_schema",
+        "ok": true,
+        "detail": "missing=[]"
+      },
+      {
+        "name": "positive_savings",
+        "ok": "True",
+        "detail": ""
+      }
+    ],
+    "pending_issues": []
+  },
+  "paths": {
+    "recommendations": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\recommendations.csv",
+    "optimization_rules": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\optimization_rules.pkl"
+  },
+  "summary": {
+    "total_recommendations": 6,
+    "total_estimated_daily_kwh_saved": 5354.43,
+    "total_estimated_daily_inr_saved": 46851.240000000005,
+    "total_estimated_monthly_co2_reduction_kg": 131718.93,
+    "priorities": {
+      "medium": 4,
+      "critical": 1,
+      "high": 1
+    }
+  },
+  "pending_issues": []
+}

@@ -1,0 +1,54 @@
+{
+  "stage": 1,
+  "name": "Campus Digital Twin Generator",
+  "validation": {
+    "stage": "stage1_digital_twin",
+    "passed": true,
+    "checks": [
+      {
+        "name": "unique_building_ids",
+        "ok": true,
+        "detail": "n=9"
+      },
+      {
+        "name": "rooms_belong_to_buildings",
+        "ok": "True",
+        "detail": "ok"
+      },
+      {
+        "name": "unique_room_ids",
+        "ok": true,
+        "detail": "n=97"
+      },
+      {
+        "name": "realistic_capacity",
+        "ok": true,
+        "detail": "min=9 max=151"
+      },
+      {
+        "name": "devices_belong_to_rooms",
+        "ok": "True",
+        "detail": "ok"
+      },
+      {
+        "name": "required_building_types",
+        "ok": true,
+        "detail": "present=['academic', 'admin', 'cafeteria', 'computer_lab', 'hostel', 'library']"
+      }
+    ],
+    "pending_issues": []
+  },
+  "paths": {
+    "buildings": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\buildings.csv",
+    "rooms": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\rooms.csv",
+    "devices": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\devices.csv",
+    "campus_metadata": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\campus_metadata.json"
+  },
+  "summary": {
+    "buildings": 9,
+    "rooms": 97,
+    "device_skus": 374,
+    "total_capacity": 5211
+  },
+  "pending_issues": []
+}

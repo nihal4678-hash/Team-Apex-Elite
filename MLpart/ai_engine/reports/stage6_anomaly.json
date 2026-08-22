@@ -1,0 +1,48 @@
+{
+  "stage": 6,
+  "name": "Anomaly Detection Agent",
+  "validation": {
+    "stage": "stage6_anomaly",
+    "passed": true,
+    "checks": [
+      {
+        "name": "model_saved",
+        "ok": true,
+        "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\anomaly_model.pkl"
+      },
+      {
+        "name": "alert_schema",
+        "ok": true,
+        "detail": "[]"
+      },
+      {
+        "name": "every_anomaly_explained",
+        "ok": true,
+        "detail": ""
+      },
+      {
+        "name": "alerts_nonempty",
+        "ok": true,
+        "detail": "n=4241"
+      }
+    ],
+    "pending_issues": []
+  },
+  "summary": {
+    "scored_rows": 60000,
+    "alerts": 4241,
+    "injected_fault_counts": {
+      "none": 58400,
+      "projector_on_empty_room": 400,
+      "lights_on_empty_room": 400,
+      "ac_on_after_hours": 400,
+      "sudden_energy_spike": 400
+    }
+  },
+  "paths": {
+    "anomaly_model": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\anomaly_model.pkl",
+    "anomaly_predictions": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\anomaly_predictions.csv",
+    "alerts": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\alerts.csv"
+  },
+  "pending_issues": []
+}

@@ -1,0 +1,58 @@
+{
+  "stage": 5,
+  "name": "Forecasting Agent",
+  "validation": {
+    "stage": "stage5_forecasting",
+    "passed": true,
+    "checks": [
+      {
+        "name": "model_serialized",
+        "ok": true,
+        "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\forecast_model.pkl"
+      },
+      {
+        "name": "predictions_written",
+        "ok": true,
+        "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\forecast_predictions.csv"
+      },
+      {
+        "name": "best_model_selected",
+        "ok": true,
+        "detail": "RandomForest"
+      },
+      {
+        "name": "r2_positive",
+        "ok": true,
+        "detail": "0.927350534320081"
+      }
+    ],
+    "pending_issues": []
+  },
+  "best_model": "RandomForest",
+  "metrics": {
+    "LinearRegression": {
+      "mae": 50.10007682786643,
+      "rmse": 86.096822523988,
+      "r2": 0.2706396832017074,
+      "mape": 166.81456036111106
+    },
+    "RandomForest": {
+      "mae": 10.505275945068353,
+      "rmse": 27.17266726456823,
+      "r2": 0.927350534320081,
+      "mape": 44.590172244248535
+    },
+    "XGBoost": {
+      "mae": 10.539217131749911,
+      "rmse": 23.993602630744153,
+      "r2": 0.9433553618307162,
+      "mape": 43.43698684605458
+    }
+  },
+  "paths": {
+    "forecast_model": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\forecast_model.pkl",
+    "forecast_predictions": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\forecast_predictions.csv",
+    "feature_importance": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\feature_importance.csv"
+  },
+  "pending_issues": []
+}

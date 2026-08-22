@@ -1,0 +1,98 @@
+room_id,building_id,building_name,category,floor,room_name,room_type,capacity,hvac_available,computer_count,lighting_count,fan_count,ac_count,projector_count
+BLK-A-F01-R01,BLK-A,Academic Block A — Engineering,academic,1,Classroom 101,classroom,42,True,1,15,8,1,1
+BLK-A-F01-R02,BLK-A,Academic Block A — Engineering,academic,1,Classroom 102,classroom,59,True,0,21,11,2,1
+BLK-A-F01-R03,BLK-A,Academic Block A — Engineering,academic,1,Classroom 103,classroom,52,True,1,18,9,2,1
+BLK-A-F01-R04,BLK-A,Academic Block A — Engineering,academic,1,Classroom 104,classroom,42,True,1,15,8,1,1
+BLK-A-F02-R01,BLK-A,Academic Block A — Engineering,academic,2,Classroom 201,classroom,46,True,0,16,8,1,1
+BLK-A-F02-R02,BLK-A,Academic Block A — Engineering,academic,2,Classroom 202,classroom,55,True,1,19,10,2,1
+BLK-A-F02-R03,BLK-A,Academic Block A — Engineering,academic,2,Classroom 203,classroom,62,True,1,22,11,2,1
+BLK-A-F02-R04,BLK-A,Academic Block A — Engineering,academic,2,Classroom 204,classroom,61,True,1,21,11,2,1
+BLK-A-F03-R01,BLK-A,Academic Block A — Engineering,academic,3,Classroom 301,classroom,55,True,0,19,10,2,1
+BLK-A-F03-R02,BLK-A,Academic Block A — Engineering,academic,3,Classroom 302,classroom,65,True,0,23,12,2,1
+BLK-A-F03-R03,BLK-A,Academic Block A — Engineering,academic,3,Classroom 303,classroom,55,True,0,19,10,2,1
+BLK-A-F03-R04,BLK-A,Academic Block A — Engineering,academic,3,Classroom 304,classroom,45,True,1,16,8,1,1
+BLK-A-F04-R01,BLK-A,Academic Block A — Engineering,academic,4,Classroom 401,classroom,63,True,1,22,11,2,1
+BLK-A-F04-R02,BLK-A,Academic Block A — Engineering,academic,4,Classroom 402,classroom,52,True,1,18,9,2,1
+BLK-A-F04-R03,BLK-A,Academic Block A — Engineering,academic,4,Classroom 403,classroom,56,True,0,20,10,2,1
+BLK-A-F04-R04,BLK-A,Academic Block A — Engineering,academic,4,Classroom 404,classroom,53,True,0,19,10,2,1
+BLK-B-F01-R01,BLK-B,Academic Block B — Sciences,academic,1,Classroom 101,classroom,37,True,2,13,7,1,1
+BLK-B-F01-R02,BLK-B,Academic Block B — Sciences,academic,1,Classroom 102,classroom,57,True,0,20,10,2,1
+BLK-B-F01-R03,BLK-B,Academic Block B — Sciences,academic,1,Classroom 103,classroom,56,True,3,20,10,2,1
+BLK-B-F02-R01,BLK-B,Academic Block B — Sciences,academic,2,Classroom 201,classroom,41,True,2,14,7,1,1
+BLK-B-F02-R02,BLK-B,Academic Block B — Sciences,academic,2,Classroom 202,classroom,39,True,3,14,7,1,1
+BLK-B-F02-R03,BLK-B,Academic Block B — Sciences,academic,2,Classroom 203,classroom,52,True,1,18,9,2,1
+BLK-B-F03-R01,BLK-B,Academic Block B — Sciences,academic,3,Classroom 301,classroom,36,True,3,13,6,1,1
+BLK-B-F03-R02,BLK-B,Academic Block B — Sciences,academic,3,Classroom 302,classroom,46,True,3,16,8,1,1
+BLK-B-F03-R03,BLK-B,Academic Block B — Sciences,academic,3,Classroom 303,classroom,51,True,3,18,9,2,1
+BLK-B-F04-R01,BLK-B,Academic Block B — Sciences,academic,4,Classroom 401,classroom,53,True,0,19,10,2,1
+BLK-B-F04-R02,BLK-B,Academic Block B — Sciences,academic,4,Classroom 402,classroom,44,True,1,15,8,1,1
+BLK-B-F04-R03,BLK-B,Academic Block B — Sciences,academic,4,Classroom 403,classroom,47,True,0,16,8,1,1
+BLK-C-F01-R01,BLK-C,Academic Block C — Management & Humanities,academic,1,Classroom 101,classroom,61,True,0,20,10,2,1
+BLK-C-F01-R02,BLK-C,Academic Block C — Management & Humanities,academic,1,Classroom 102,classroom,69,True,1,22,11,2,1
+BLK-C-F01-R03,BLK-C,Academic Block C — Management & Humanities,academic,1,Classroom 103,classroom,76,True,1,24,12,2,1
+BLK-C-F02-R01,BLK-C,Academic Block C — Management & Humanities,academic,2,Classroom 201,classroom,54,True,1,17,9,2,1
+BLK-C-F02-R02,BLK-C,Academic Block C — Management & Humanities,academic,2,Classroom 202,classroom,56,True,0,18,9,2,1
+BLK-C-F02-R03,BLK-C,Academic Block C — Management & Humanities,academic,2,Classroom 203,classroom,76,True,0,24,12,2,1
+BLK-C-F03-R01,BLK-C,Academic Block C — Management & Humanities,academic,3,Classroom 301,classroom,43,True,0,14,7,1,1
+BLK-C-F03-R02,BLK-C,Academic Block C — Management & Humanities,academic,3,Classroom 302,classroom,71,True,0,23,11,2,1
+BLK-C-F03-R03,BLK-C,Academic Block C — Management & Humanities,academic,3,Classroom 303,classroom,58,True,0,19,9,2,1
+LAB-CSE-F01-R01,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,1,Lab 101,lab,60,True,55,24,7,2,1
+LAB-CSE-F01-R02,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,1,Lab 102,lab,49,True,47,20,6,1,1
+LAB-CSE-F01-R03,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,1,Lab 103,lab,56,True,61,22,7,2,1
+LAB-CSE-F02-R01,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,2,Lab 201,lab,68,True,53,27,8,2,1
+LAB-CSE-F02-R02,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,2,Lab 202,lab,44,True,66,18,5,1,1
+LAB-CSE-F02-R03,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,2,Lab 203,lab,58,True,62,23,7,2,1
+LAB-CSE-F03-R01,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,3,Lab 301,lab,42,True,49,17,5,1,1
+LAB-CSE-F03-R02,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,3,Lab 302,lab,63,True,66,25,8,2,1
+LAB-CSE-F03-R03,LAB-CSE,Computer Science Laboratories (Building E),computer_lab,3,Lab 303,lab,53,True,65,21,6,2,1
+LIB-F01-R01,LIB,Central Library (Building F),library,1,Reading Hall 101,reading_hall,147,True,22,41,21,2,0
+LIB-F01-R02,LIB,Central Library (Building F),library,1,Reading Hall 102,reading_hall,151,True,20,42,21,2,0
+LIB-F02-R01,LIB,Central Library (Building F),library,2,Reading Hall 201,reading_hall,99,True,31,28,14,2,0
+LIB-F02-R02,LIB,Central Library (Building F),library,2,Reading Hall 202,reading_hall,130,True,15,36,18,2,0
+LIB-F03-R01,LIB,Central Library (Building F),library,3,Reading Hall 301,reading_hall,146,True,17,41,20,2,0
+LIB-F03-R02,LIB,Central Library (Building F),library,3,Reading Hall 302,reading_hall,144,True,12,40,20,2,0
+HST-B-F01-R01,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,1,Wing 101,wing,48,False,3,11,11,0,0
+HST-B-F01-R02,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,1,Wing 102,wing,48,False,2,11,11,0,0
+HST-B-F01-R03,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,1,Wing 103,wing,43,False,2,9,9,0,0
+HST-B-F01-R04,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,1,Wing 104,wing,40,False,3,9,9,0,0
+HST-B-F02-R01,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,2,Wing 201,wing,44,False,1,10,10,0,0
+HST-B-F02-R02,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,2,Wing 202,wing,44,False,2,10,10,0,0
+HST-B-F02-R03,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,2,Wing 203,wing,36,False,0,8,8,0,0
+HST-B-F02-R04,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,2,Wing 204,wing,39,False,0,9,9,0,0
+HST-B-F03-R01,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,3,Wing 301,wing,43,False,2,9,9,0,0
+HST-B-F03-R02,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,3,Wing 302,wing,46,False,1,10,10,0,0
+HST-B-F03-R03,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,3,Wing 303,wing,49,False,2,11,11,0,0
+HST-B-F03-R04,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,3,Wing 304,wing,37,False,3,8,8,0,0
+HST-B-F04-R01,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,4,Wing 401,wing,45,False,2,10,10,0,0
+HST-B-F04-R02,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,4,Wing 402,wing,45,False,2,10,10,0,0
+HST-B-F04-R03,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,4,Wing 403,wing,37,False,2,8,8,0,0
+HST-B-F04-R04,HST-B,Boys Hostel — Vignan Vihar (Building I),hostel,4,Wing 404,wing,48,False,1,11,11,0,0
+HST-G-F01-R01,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,1,Wing 101,wing,41,False,0,9,9,0,0
+HST-G-F01-R02,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,1,Wing 102,wing,37,False,1,8,8,0,0
+HST-G-F01-R03,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,1,Wing 103,wing,47,False,0,10,10,0,0
+HST-G-F01-R04,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,1,Wing 104,wing,36,False,1,8,8,0,0
+HST-G-F02-R01,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,2,Wing 201,wing,47,False,2,10,10,0,0
+HST-G-F02-R02,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,2,Wing 202,wing,32,False,0,7,7,0,0
+HST-G-F02-R03,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,2,Wing 203,wing,45,False,0,10,10,0,0
+HST-G-F02-R04,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,2,Wing 204,wing,45,False,0,10,10,0,0
+HST-G-F03-R01,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,3,Wing 301,wing,46,False,0,10,10,0,0
+HST-G-F03-R02,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,3,Wing 302,wing,38,False,1,8,8,0,0
+HST-G-F03-R03,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,3,Wing 303,wing,34,False,1,7,7,0,0
+HST-G-F03-R04,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,3,Wing 304,wing,40,False,2,9,9,0,0
+HST-G-F04-R01,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,4,Wing 401,wing,47,False,1,10,10,0,0
+HST-G-F04-R02,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,4,Wing 402,wing,38,False,1,8,8,0,0
+HST-G-F04-R03,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,4,Wing 403,wing,38,False,2,8,8,0,0
+HST-G-F04-R04,HST-G,Girls Hostel — Priyadarshini Block (Building H),hostel,4,Wing 404,wing,37,False,0,8,8,0,0
+ADM-F01-R01,ADM,Administrative Block (Building G),admin,1,Office 101,office,13,True,6,6,3,1,0
+ADM-F01-R02,ADM,Administrative Block (Building G),admin,1,Office 102,office,9,True,7,6,2,1,0
+ADM-F01-R03,ADM,Administrative Block (Building G),admin,1,Office 103,office,20,True,14,10,4,1,0
+ADM-F02-R01,ADM,Administrative Block (Building G),admin,2,Office 201,office,19,True,11,10,4,1,0
+ADM-F02-R02,ADM,Administrative Block (Building G),admin,2,Office 202,office,19,True,7,10,4,1,0
+ADM-F02-R03,ADM,Administrative Block (Building G),admin,2,Office 203,office,22,True,12,11,4,1,0
+ADM-F03-R01,ADM,Administrative Block (Building G),admin,3,Office 301,office,23,True,7,12,5,1,0
+ADM-F03-R02,ADM,Administrative Block (Building G),admin,3,Office 302,office,15,True,14,8,3,1,0
+ADM-F03-R03,ADM,Administrative Block (Building G),admin,3,Office 303,office,15,True,11,8,3,1,0
+CAF-F01-R01,CAF,Central Complex & Cafeteria (Building D),cafeteria,1,Dining 101,dining,89,True,0,18,13,2,0
+CAF-F01-R02,CAF,Central Complex & Cafeteria (Building D),cafeteria,1,Dining 102,dining,94,True,0,19,14,2,0
+CAF-F02-R01,CAF,Central Complex & Cafeteria (Building D),cafeteria,2,Dining 201,dining,121,True,1,24,18,2,0
+CAF-F02-R02,CAF,Central Complex & Cafeteria (Building D),cafeteria,2,Dining 202,dining,116,True,0,23,17,2,0

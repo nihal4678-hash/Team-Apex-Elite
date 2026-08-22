@@ -1,0 +1,52 @@
+{
+  "stage": 2,
+  "name": "Live IoT Sensor Simulation Agent",
+  "validation": {
+    "stage": "stage2_iot_simulation",
+    "passed": true,
+    "checks": [
+      {
+        "name": "min_records",
+        "ok": true,
+        "detail": "n=363168"
+      },
+      {
+        "name": "timestamps_parseable",
+        "ok": "True",
+        "detail": "nulls=0"
+      },
+      {
+        "name": "no_future_clock_errors",
+        "ok": "True",
+        "detail": ""
+      },
+      {
+        "name": "energy_positive",
+        "ok": "True",
+        "detail": "min=0.00301"
+      },
+      {
+        "name": "occupancy_le_capacity",
+        "ok": "True",
+        "detail": "violations=0"
+      },
+      {
+        "name": "occupancy_non_negative",
+        "ok": "True",
+        "detail": ""
+      }
+    ],
+    "pending_issues": []
+  },
+  "paths": {
+    "sensor_readings": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\generated\\sensor_readings.csv"
+  },
+  "summary": {
+    "rows": 363168,
+    "rooms": 97,
+    "start": "2025-07-01 00:00:00",
+    "end": "2025-08-08 23:45:00",
+    "total_energy_kwh": 546351.62787
+  },
+  "pending_issues": []
+}

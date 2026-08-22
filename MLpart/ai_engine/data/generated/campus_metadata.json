@@ -1,0 +1,28 @@
+{
+  "campus": {
+    "name": "Vignan University",
+    "legal_name": "Vignan's Foundation for Science, Technology & Research",
+    "location": "Vadlamudi, Guntur District, Andhra Pradesh, India",
+    "latitude": 16.2347,
+    "longitude": 80.5516,
+    "timezone": "Asia/Kolkata",
+    "grid_voltage_v": 230.0,
+    "grid_frequency_hz": 50.0,
+    "tariff_inr_per_kwh": 8.75,
+    "grid_carbon_kg_per_kwh": 0.82
+  },
+  "building_count": 9,
+  "room_count": 97,
+  "device_sku_count": 374,
+  "total_capacity": 5211,
+  "categories": [
+    "academic",
+    "admin",
+    "cafeteria",
+    "computer_lab",
+    "hostel",
+    "library"
+  ],
+  "generator": "stage1_digital_twin",
+  "seed": 42
+}

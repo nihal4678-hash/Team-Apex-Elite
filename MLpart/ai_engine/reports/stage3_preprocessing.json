@@ -1,0 +1,68 @@
+{
+  "stage": 3,
+  "name": "Sensor Preprocessing Agent",
+  "validation": {
+    "stage": "stage3_preprocessing",
+    "passed": true,
+    "checks": [
+      {
+        "name": "no_missing_values",
+        "ok": true,
+        "detail": "nulls=0"
+      },
+      {
+        "name": "no_duplicate_room_timestamps",
+        "ok": true,
+        "detail": "dupes=0"
+      },
+      {
+        "name": "feature_columns_present",
+        "ok": true,
+        "detail": "missing=[]"
+      }
+    ],
+    "pending_issues": []
+  },
+  "paths": {
+    "processed": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\data\\processed\\processed_sensor_data.csv",
+    "feature_pipeline": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\models\\feature_pipeline.pkl"
+  },
+  "summary": {
+    "rows": 363168,
+    "columns": [
+      "timestamp",
+      "building_id",
+      "building_name",
+      "room_id",
+      "category",
+      "occupancy",
+      "room_capacity",
+      "indoor_temperature_c",
+      "outdoor_temperature_c",
+      "humidity_pct",
+      "lights_status",
+      "fans_status",
+      "ac_status",
+      "projector_status",
+      "computer_usage",
+      "computers_active",
+      "voltage_v",
+      "current_a",
+      "power_factor",
+      "frequency_hz",
+      "power_w",
+      "energy_kwh",
+      "hour",
+      "day_of_week",
+      "is_weekend",
+      "is_working_hours",
+      "occupancy_ratio",
+      "temperature_diff_c",
+      "active_device_count",
+      "cooling_load_index",
+      "month",
+      "date"
+    ]
+  },
+  "pending_issues": []
+}

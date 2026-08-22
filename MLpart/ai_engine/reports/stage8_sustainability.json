@@ -1,0 +1,52 @@
+{
+  "stage": 8,
+  "name": "Sustainability & Carbon Footprint Agent",
+  "validation": {
+    "stage": "stage8_sustainability",
+    "passed": true,
+    "checks": [
+      {
+        "name": "sustainability_score_valid",
+        "ok": true,
+        "detail": "score=69.9"
+      },
+      {
+        "name": "pdf_report_generated",
+        "ok": true,
+        "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage8_sustainability_report.pdf"
+      },
+      {
+        "name": "markdown_summary_written",
+        "ok": true,
+        "detail": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage8_sustainability_summary.md"
+      },
+      {
+        "name": "emissions_reconciled",
+        "ok": true,
+        "detail": ""
+      }
+    ],
+    "pending_issues": []
+  },
+  "paths": {
+    "pdf_report": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage8_sustainability_report.pdf",
+    "markdown_summary": "C:\\Users\\virat\\OneDrive\\Desktop\\MLpart\\ai_engine\\reports\\stage8_sustainability_summary.md"
+  },
+  "summary": {
+    "annual_electricity_kwh": 2500000.0,
+    "grid_electricity_kwh": 1525000.0,
+    "solar_generation_kwh": 975000.0,
+    "renewable_share_pct": 39.0,
+    "scope1_dg_emissions_tco2": 48.2,
+    "scope2_grid_emissions_tco2": 1250.5,
+    "total_gross_emissions_tco2": 1298.7,
+    "solar_avoided_emissions_tco2": 799.5,
+    "net_carbon_footprint_tco2": 1298.7,
+    "potential_annual_opt_saving_tco2": 1580.63,
+    "campus_eui_kwh_per_sqm": 22.34,
+    "total_built_up_area_sqm": 111916.33,
+    "ecomind_sustainability_index": 69.9,
+    "per_capita_tco2": 0.541
+  },
+  "pending_issues": []
+}
