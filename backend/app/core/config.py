@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 ENV_PATH = BASE_DIR / "backend" / ".env"
@@ -15,13 +15,31 @@ if ENV_PATH.exists():
                 os.environ[k.strip()] = v.strip()
 
 
+def parse_cors_origins() -> list[str]:
+    raw_cors = os.getenv("CORS_ORIGINS", "")
+    defaults = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    if not raw_cors:
+        return defaults + ["*"]
+
+    custom_list = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
+    merged = list(dict.fromkeys(defaults + custom_list))
+    return merged
+
+
 class Settings(BaseModel):
     PROJECT_NAME: str = "EcoMind AI Smart Campus Energy Optimization Engine"
     API_V1_STR: str = "/api/v1"
     VERSION: str = "1.0.0"
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = os.getenv("DEBUG", "true").lower() == "true"
+    
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_API_KEYS: str = os.getenv("GEMINI_API_KEYS", os.getenv("GEMINI_API_KEY", ""))
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
@@ -32,12 +50,7 @@ class Settings(BaseModel):
     GENERATED_DATA_DIR: Path = ML_ENGINE_DIR / "data" / "generated"
     MODELS_DIR: Path = ML_ENGINE_DIR / "models"
     
-    CORS_ORIGINS: list[str] = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "*"
-    ]
+    CORS_ORIGINS: list[str] = Field(default_factory=parse_cors_origins)
 
 
 settings = Settings()

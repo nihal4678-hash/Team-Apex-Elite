@@ -9,7 +9,7 @@ import {
   getRecommendations, applyRecommendation, resolveAlert, runSimulation,
   getSustainability, getGeminiCostExplanation, getGeminiAnomalySummary,
   getGeminiApprovalSupport, getGeminiScenarioAnalysis, getGeminiExecutiveReport,
-  askGeminiQuestion
+  askGeminiQuestion, getBackendReadiness
 } from './services/api'
 import { SimulationPage } from './pages/SimulationPage'
 import { ForecastPage } from './pages/ForecastPage'
@@ -51,8 +51,12 @@ function App() {
   const [qaResult, setQaResult] = useState(null)
   const [isAsking, setIsAsking] = useState(false)
   const [activeScenarioFilter, setActiveScenarioFilter] = useState(null)
+  const [readiness, setReadiness] = useState(null)
 
   const loadData = async () => {
+    const ready = await getBackendReadiness()
+    if (ready) setReadiness(ready)
+
     const snap = await getCampusSnapshot()
     if (snap) setSnapshot(snap)
 
@@ -183,7 +187,13 @@ function App() {
             <Menu size={20} />
           </button>
           <div>
-            <p className="eyebrow">Gemini AI Intelligence Layer Active · VFSTR Campus</p>
+            <p className="eyebrow">
+              {readiness?.gemini_configured && readiness?.gemini_reachable
+                ? 'Gemini AI Intelligence Layer Active · VFSTR Campus'
+                : readiness?.status === 'ready'
+                ? 'Backend API Connected (Gemini Key Unconfigured) · VFSTR Campus'
+                : 'Backend Connection Unavailable · Check Production API URL'}
+            </p>
             <h1>{activePage === 'Overview' ? 'Good morning, Jordan' : activePage}</h1>
           </div>
           <div className="top-actions">
@@ -193,9 +203,15 @@ function App() {
         </header>
 
         {activePage === 'Overview' && (
-          <div className="status-strip">
-            <span className="status-dot" />
-            <strong>Gemini Intelligence & Closed-Loop Engine Active</strong>
+          <div className="status-strip" style={{ background: readiness?.gemini_configured ? '#f0fdf4' : '#fef2f2' }}>
+            <span className="status-dot" style={{ background: readiness?.gemini_configured ? '#16a34a' : '#dc2626' }} />
+            <strong>
+              {readiness?.gemini_configured && readiness?.gemini_reachable
+                ? 'Gemini Intelligence & Closed-Loop Engine Active'
+                : readiness?.status === 'ready'
+                ? 'Backend API Active (Gemini Service Unavailable - Verify Key)'
+                : 'Backend Connection Unavailable - Check Production API URL'}
+            </strong>
             <span className="status-separator" />
             <span>ML Computations + Gemini Natural Language Reasoning</span>
             <button onClick={loadData}>Refresh AI Insights <ArrowUpRight size={14} /></button>

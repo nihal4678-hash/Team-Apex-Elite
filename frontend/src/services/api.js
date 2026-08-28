@@ -1,22 +1,61 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+// Dynamic Environment-based API Base URL configuration
+const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+let normalizedBase = rawBase.trim().replace(/\/+$/, '');
+
+// Ensure normalizedBase resolves cleanly to /api or /api/v1 prefix
+if (!normalizedBase.endsWith('/api') && !normalizedBase.endsWith('/v1')) {
+  normalizedBase = `${normalizedBase}/api/v1`;
+} else if (normalizedBase.endsWith('/api')) {
+  normalizedBase = `${normalizedBase}/v1`;
+}
+
+export const API_BASE_URL = normalizedBase;
 
 async function fetchJson(endpoint, options = {}) {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const fullUrl = `${API_BASE_URL}${cleanEndpoint}`;
+
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const res = await fetch(fullUrl, {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
       ...options,
     });
+
     if (!res.ok) {
-      throw new Error(`API call failed: ${res.status} ${res.statusText}`);
+      const errorText = await res.text().catch(() => 'No response text');
+      console.error(`[EcoMind API Error] ${fullUrl} | Status: ${res.status} ${res.statusText} | Body:`, errorText);
+      return null;
     }
     return await res.json();
   } catch (err) {
-    console.warn(`[EcoMind API Bridge] Fallback mode for ${endpoint}:`, err.message);
+    console.error(`[EcoMind Network Error] ${fullUrl} | Connection unavailable:`, err.message);
     return null;
   }
+}
+
+export async function getBackendHealth() {
+  const rootBase = API_BASE_URL.replace(/\/api(\/v1)?$/, '');
+  try {
+    const res = await fetch(`${rootBase}/health`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('[EcoMind Health Check Failed]:', e.message);
+  }
+  return null;
+}
+
+export async function getBackendReadiness() {
+  const rootBase = API_BASE_URL.replace(/\/api(\/v1)?$/, '');
+  try {
+    const res = await fetch(`${rootBase}/ready`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('[EcoMind Readiness Check Failed]:', e.message);
+  }
+  return null;
 }
 
 export async function getCampusSnapshot() {
@@ -200,10 +239,17 @@ export async function cleanupSimulationRecords(scenarioId = null) {
 
 export async function getSustainability() {
   const data = await fetchJson('/sustainability');
-  if (data) return data;
+  if (data && data.green_leaderboard && data.green_leaderboard.length > 0) return data;
   return {
     carbon_avoided_kg: 426,
     energy_intensity: '12.4% below baseline',
+    green_leaderboard: [
+      { building_name: 'Academic Block A - Engineering', leaderboard_rank: 1, efficiency_score: 94.2 },
+      { building_name: 'Central Library (NTR)', leaderboard_rank: 2, efficiency_score: 91.8 },
+      { building_name: 'Academic Block B - Sciences', leaderboard_rank: 3, efficiency_score: 88.5 },
+      { building_name: 'Computer Science Laboratories', leaderboard_rank: 4, efficiency_score: 85.0 },
+      { building_name: 'Priyadarsini Girls Hostel', leaderboard_rank: 5, efficiency_score: 82.4 },
+    ]
   };
 }
 

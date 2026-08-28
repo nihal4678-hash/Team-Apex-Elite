@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.schemas.ai_schemas import (
     AnomalySummaryResponseSchema, ApprovalSupportRequestSchema,
     ApprovalSupportResponseSchema, AskQuestionRequestSchema,
@@ -11,7 +11,7 @@ from app.services.gemini_service import gemini_service
 router = APIRouter(prefix="/ai", tags=["gemini_intelligence"])
 
 
-# --- CONTEXT ENDPOINTS (Phase B) ---
+# --- CONTEXT ENDPOINTS ---
 @router.get("/context/forecast")
 def get_forecast_context():
     return gemini_service.get_forecast_context()
@@ -37,7 +37,7 @@ def get_monthly_cost_context():
     return gemini_service.get_monthly_cost_context()
 
 
-# --- GEMINI INTELLIGENCE & REASONING ENDPOINTS (Phase C) ---
+# --- GEMINI INTELLIGENCE & REASONING ENDPOINTS ---
 @router.get("/cost-explanation", response_model=CostExplanationResponseSchema)
 def get_cost_explanation() -> CostExplanationResponseSchema:
     return gemini_service.explain_cost_forecast()
@@ -75,4 +75,6 @@ def get_executive_report() -> ExecutiveReportResponseSchema:
 
 @router.post("/ask", response_model=AskQuestionResponseSchema)
 def ask_gemini(payload: AskQuestionRequestSchema) -> AskQuestionResponseSchema:
-    return gemini_service.answer_natural_language_question(payload.question)
+    if not payload.question or not payload.question.strip():
+        raise HTTPException(status_code=400, detail="Question prompt cannot be empty.")
+    return gemini_service.answer_natural_language_question(payload.question.strip())
