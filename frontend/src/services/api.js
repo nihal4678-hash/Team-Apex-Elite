@@ -52,6 +52,11 @@ export async function getForecast() {
   };
 }
 
+export async function getForecastDashboard() {
+  const data = await fetchJson('/forecast/dashboard');
+  return data || null;
+}
+
 export async function getAlerts() {
   const data = await fetchJson('/alerts');
   if (data) return data;
@@ -65,6 +70,19 @@ export async function getAlerts() {
       status: 'pending',
     },
   ];
+}
+
+export async function getAlertsDashboard() {
+  const data = await fetchJson('/alerts/dashboard');
+  return data || null;
+}
+
+export async function sendAlertFeedback(alertId, feedback, notes = '') {
+  const data = await fetchJson(`/alerts/${alertId}/feedback`, {
+    method: 'POST',
+    body: JSON.stringify({ user_feedback: feedback, notes }),
+  });
+  return data || { success: true };
 }
 
 export async function getRecommendations() {
@@ -107,6 +125,77 @@ export async function runSimulation(buildingId, tempDelta = -2, durationMinutes 
     }),
   });
   return data || { building_id: buildingId, estimated_savings: 38, status: 'ready_for_approval' };
+}
+
+export async function runDateRangeSimulation(params = {}) {
+  const payload = {
+    from_date: params.from_date || '2025-07-01',
+    from_time: params.from_time || '08:00',
+    to_date: params.to_date || '2025-07-31',
+    to_time: params.to_time || '18:00',
+    building_id: params.building_id || 'ALL',
+    temperature_delta: params.temperature_delta ?? -2.0,
+    occupancy_scale: params.occupancy_scale ?? 1.0,
+    include_solar: params.include_solar ?? true,
+    after_hours_monitoring: params.after_hours_monitoring ?? true,
+    clean_previous: params.clean_previous ?? false,
+  };
+
+  const data = await fetchJson('/simulation/loop/run', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+  return data;
+}
+
+export async function startControlledSimulation(params = {}) {
+  const payload = {
+    from_date: params.from_date || '2025-07-01',
+    from_time: params.from_time || '08:00',
+    to_date: params.to_date || '2025-07-31',
+    to_time: params.to_time || '18:00',
+    building_id: params.building_id || 'ALL',
+    temperature_delta: params.temperature_delta ?? -2.0,
+    occupancy_scale: params.occupancy_scale ?? 1.0,
+    include_solar: params.include_solar ?? true,
+    after_hours_monitoring: params.after_hours_monitoring ?? true,
+    clean_previous: params.clean_previous ?? false,
+  };
+
+  const data = await fetchJson('/simulation/loop/start', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return data;
+}
+
+export async function stopControlledSimulation(scenarioId) {
+  const data = await fetchJson(`/simulation/loop/stop?scenario_id=${scenarioId}`, {
+    method: 'POST',
+  });
+  return data;
+}
+
+export async function getSimulationProgress(scenarioId) {
+  const data = await fetchJson(`/simulation/loop/progress/${scenarioId}`);
+  return data;
+}
+
+export async function getSimulationScenarios() {
+  const data = await fetchJson('/simulation/loop/scenarios');
+  return data || [];
+}
+
+export async function getLoopScenarioDetail(scenarioId) {
+  const data = await fetchJson(`/simulation/loop/scenario/${scenarioId}`);
+  return data || null;
+}
+
+export async function cleanupSimulationRecords(scenarioId = null) {
+  const url = scenarioId ? `/simulation/loop/cleanup?scenario_id=${scenarioId}` : '/simulation/loop/cleanup';
+  const data = await fetchJson(url, { method: 'DELETE' });
+  return data || { success: true };
 }
 
 export async function getSustainability() {

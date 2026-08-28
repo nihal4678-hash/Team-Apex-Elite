@@ -24,6 +24,9 @@ class Settings(BaseModel):
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("SUPABASE_ANON_KEY", "")))
+    
     BASE_DIR: Path = BASE_DIR
     ML_ENGINE_DIR: Path = BASE_DIR / "MLpart" / "ai_engine"
     GENERATED_DATA_DIR: Path = ML_ENGINE_DIR / "data" / "generated"

@@ -86,6 +86,8 @@ class AlertDB(Base):
     __tablename__ = "alerts"
 
     id = Column(String, primary_key=True, index=True)
+    scenario_id = Column(String, nullable=True, index=True)
+    data_source = Column(String, default="actual", nullable=False)
     building_id = Column(String, nullable=False)
     building = Column(String, nullable=False)
     type = Column(String, nullable=False)
@@ -198,3 +200,55 @@ class CostPredictionDB(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class SimulatedReadingDB(Base):
+    __tablename__ = "simulated_preprocessed_readings"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scenario_id = Column(String, index=True, nullable=False)
+    data_source = Column(String, default="simulated", nullable=False)  # Explicit source separation
+    building_id = Column(String, nullable=False)
+    timestamp = Column(String, nullable=False)
+    month = Column(Integer, nullable=False)
+    occupancy_ratio = Column(Float, default=0.5)
+    temperature_diff_c = Column(Float, default=0.0)
+    active_device_count = Column(Integer, default=5)
+    cooling_load_index = Column(Float, default=1.0)
+    simulated_kwh = Column(Float, nullable=False)
+    predicted_kwh = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class SimulationScenarioRunDB(Base):
+    __tablename__ = "simulation_scenario_runs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scenario_id = Column(String, unique=True, index=True, nullable=False)
+    data_source = Column(String, default="simulated_vignan_loop", nullable=False)  # Explicit source separation
+    status = Column(String, default="completed", nullable=False)  # queued / running / stopping / stopped / completed / failed
+    cancel_requested = Column(Boolean, default=False)
+    simulation_start_datetime = Column(String, nullable=True)
+    simulation_end_datetime = Column(String, nullable=True)
+    after_hours_monitoring = Column(Boolean, default=True)
+    total_hourly_records = Column(Integer, default=0)
+    completed_hourly_records = Column(Integer, default=0)
+    generated_records_count = Column(Integer, default=0)
+    alerts_detected_count = Column(Integer, default=0)
+    current_timestamp = Column(String, nullable=True)
+    current_building_id = Column(String, nullable=True)
+    started_at = Column(String, nullable=True)
+    stopped_at = Column(String, nullable=True)
+    completed_at = Column(String, nullable=True)
+    failure_message = Column(Text, nullable=True)
+    months_run = Column(Text, nullable=False, default="[]")  # JSON list of month numbers
+    building_ids = Column(Text, nullable=False, default="[]")  # JSON list of building IDs
+    temperature_delta = Column(Float, default=-2.0)
+    occupancy_scale = Column(Float, default=1.0)
+    include_solar = Column(Boolean, default=True)
+    total_baseline_kwh = Column(Float, default=0.0)
+    total_predicted_kwh = Column(Float, default=0.0)
+    total_optimized_kwh = Column(Float, default=0.0)
+    total_saved_kwh = Column(Float, default=0.0)
+    total_saved_inr = Column(Float, default=0.0)
+    total_co2_reduced_kg = Column(Float, default=0.0)
+    monthly_summary_json = Column(Text, default="[]")  # JSON breakdown
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

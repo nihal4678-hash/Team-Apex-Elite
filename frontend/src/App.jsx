@@ -11,6 +11,9 @@ import {
   getGeminiApprovalSupport, getGeminiScenarioAnalysis, getGeminiExecutiveReport,
   askGeminiQuestion
 } from './services/api'
+import { SimulationPage } from './pages/SimulationPage'
+import { ForecastPage } from './pages/ForecastPage'
+import { AlertsPage } from './pages/AlertsPage'
 import './App.css'
 
 const navItems = [
@@ -47,6 +50,7 @@ function App() {
   const [userQuery, setUserQuery] = useState('')
   const [qaResult, setQaResult] = useState(null)
   const [isAsking, setIsAsking] = useState(false)
+  const [activeScenarioFilter, setActiveScenarioFilter] = useState(null)
 
   const loadData = async () => {
     const snap = await getCampusSnapshot()
@@ -319,11 +323,13 @@ function App() {
         ) : activePage === 'Buildings' ? (
           <BuildingsView buildings={buildings} onSim={handleTriggerSim} simResult={simResult} />
         ) : activePage === 'Forecast' ? (
-          <ForecastView forecastBars={forecastBars} costExplanation={costExplanation} scenarioData={scenarioData} />
+          <ForecastPage />
         ) : activePage === 'Alerts' ? (
-          <AlertsView alerts={alerts} anomalySummary={anomalySummary} onResolve={handleResolveAlert} />
+          <AlertsPage onResolveAlert={handleResolveAlert} initialScenarioId={activeScenarioFilter} />
         ) : activePage === 'Sustainability' ? (
           <SustainabilityView data={sustainabilityData} executiveReport={executiveReport} />
+        ) : activePage === 'Simulation' ? (
+          <SimulationPage buildings={buildings} onNavigateToAlerts={(scId) => { setActiveScenarioFilter(scId); setActivePage('Alerts'); }} />
         ) : (
           <PlaceholderPage page={activePage} onBack={() => selectPage('Overview')} />
         )}

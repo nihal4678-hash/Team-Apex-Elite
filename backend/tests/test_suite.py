@@ -11,9 +11,11 @@ from app.database.database import SessionLocal, init_db
 from app.repositories.db_repository import db_repository
 from app.routes.health import health_check, readiness_check
 from app.schemas.cost_prediction import CostPredictionRequestSchema
+from app.schemas.simulation import LoopSimulationRequestSchema
 from app.services.agent_orchestrator import agent_orchestration_service
 from app.services.artifact_ingestion import artifact_ingestion_service
 from app.services.cost_prediction_service import cost_prediction_service
+from app.services.loop_simulation_service import loop_simulation_service
 from app.services.db_seed import seed_database
 from app.services.gemini_service import gemini_service
 
@@ -121,6 +123,45 @@ class TestEcoMindSystem(unittest.TestCase):
         qa_res = gemini_service.answer_natural_language_question("Which building consumed the most energy?")
         self.assertIsNotNone(qa_res.answer)
         self.assertGreater(len(qa_res.cited_metrics), 0)
+
+    def test_10_loop_simulation_workflow(self):
+        # 1. Test date-range simulation loop execution
+        req_single = LoopSimulationRequestSchema(
+            from_date="2025-07-01",
+            to_date="2025-07-31",
+            building_id="BLK-A",
+            temperature_delta=-2.0,
+            occupancy_scale=1.0,
+            include_solar=True
+        )
+        res_single = loop_simulation_service.run_loop_simulation(req_single)
+        self.assertIsNotNone(res_single.scenario_id)
+        self.assertEqual(res_single.data_source, "simulated_vignan_loop")
+        self.assertGreater(res_single.total_records, 0)
+        self.assertGreater(res_single.estimated_saved_kwh, 0)
+        self.assertGreater(res_single.estimated_saved_inr, 0)
+        self.assertGreater(res_single.carbon_avoided_kg, 0)
+
+        # 2. Test full year date range simulation loop execution
+        req_year = LoopSimulationRequestSchema(
+            from_date="2025-01-01",
+            to_date="2025-12-31",
+            building_id="ALL",
+            temperature_delta=-1.5,
+            occupancy_scale=0.9
+        )
+        res_year = loop_simulation_service.run_loop_simulation(req_year)
+        self.assertEqual(len(res_year.monthly_breakdown), 12)
+        self.assertGreater(res_year.estimated_saved_kwh, res_single.estimated_saved_kwh)
+
+        # 3. Test scenario list and detail retrieval from DB
+        scenarios = loop_simulation_service.get_scenarios()
+        self.assertGreater(len(scenarios), 0)
+
+        detail = loop_simulation_service.get_scenario_detail(res_single.scenario_id)
+        self.assertEqual(detail.scenario_id, res_single.scenario_id)
+        self.assertEqual(detail.data_source, "simulated_vignan_loop")
+        self.assertGreater(detail.preprocessed_records_stored, 0)
 
 
 if __name__ == "__main__":
