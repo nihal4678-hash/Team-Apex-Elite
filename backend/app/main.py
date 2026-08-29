@@ -45,11 +45,16 @@ app = FastAPI(
 # Exception handlers
 setup_exception_handlers(app)
 
-# CORS middleware
+# CORS middleware supporting Render & local development
+origins = settings.CORS_ORIGINS
+has_wildcard = "*" in origins
+explicit_origins = [o for o in origins if o != "*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=explicit_origins if explicit_origins else ["*"],
+    allow_origin_regex=r"https://.*\.onrender\.com|https://.*\.vercel\.app|http://localhost:.*|http://127\.0\.0\.1:.*",
+    allow_credentials=not has_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
 )

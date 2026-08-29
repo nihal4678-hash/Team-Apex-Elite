@@ -1,15 +1,40 @@
-// Dynamic Environment-based API Base URL configuration
-const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-let normalizedBase = rawBase.trim().replace(/\/+$/, '');
+// Dynamic Environment & Runtime-based API Base URL configuration
+function getApiBaseUrl() {
+  const envBase = import.meta.env.VITE_API_BASE_URL;
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// Ensure normalizedBase resolves cleanly to /api or /api/v1 prefix
-if (!normalizedBase.endsWith('/api') && !normalizedBase.endsWith('/v1')) {
-  normalizedBase = `${normalizedBase}/api/v1`;
-} else if (normalizedBase.endsWith('/api')) {
-  normalizedBase = `${normalizedBase}/v1`;
+  let rawBase = envBase;
+
+  // Smart runtime fallback if deployed in production but VITE_API_BASE_URL points to localhost or is missing
+  if (!isLocalhost && (!rawBase || rawBase.includes('localhost') || rawBase.includes('127.0.0.1'))) {
+    if (typeof window !== 'undefined' && window.location.hostname.endsWith('.onrender.com')) {
+      const siteName = window.location.hostname.replace('.onrender.com', '');
+      const backendName = siteName.endsWith('-frontend')
+        ? siteName.replace(/-frontend$/, '-backend')
+        : `${siteName}-backend`;
+      rawBase = `https://${backendName}.onrender.com/api/v1`;
+    } else if (typeof window !== 'undefined') {
+      rawBase = `${window.location.origin}/api/v1`;
+    }
+  }
+
+  if (!rawBase) {
+    rawBase = 'http://localhost:8000/api/v1';
+  }
+
+  let normalized = rawBase.trim().replace(/\/+$/, '');
+  if (!normalized.endsWith('/api') && !normalized.endsWith('/v1')) {
+    normalized = `${normalized}/api/v1`;
+  } else if (normalized.endsWith('/api')) {
+    normalized = `${normalized}/v1`;
+  }
+
+  return normalized;
 }
 
-export const API_BASE_URL = normalizedBase;
+export const API_BASE_URL = getApiBaseUrl();
 
 async function fetchJson(endpoint, options = {}) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
