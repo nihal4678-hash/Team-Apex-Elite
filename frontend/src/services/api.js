@@ -9,15 +9,7 @@ function getApiBaseUrl() {
 
   // Smart runtime fallback if deployed in production but VITE_API_BASE_URL points to localhost or is missing
   if (!isLocalhost && (!rawBase || rawBase.includes('localhost') || rawBase.includes('127.0.0.1'))) {
-    if (typeof window !== 'undefined' && window.location.hostname.endsWith('.onrender.com')) {
-      const siteName = window.location.hostname.replace('.onrender.com', '');
-      const backendName = siteName.endsWith('-frontend')
-        ? siteName.replace(/-frontend$/, '-backend')
-        : `${siteName}-backend`;
-      rawBase = `https://${backendName}.onrender.com/api/v1`;
-    } else if (typeof window !== 'undefined') {
-      rawBase = `${window.location.origin}/api/v1`;
-    }
+    rawBase = 'https://team-apex-elite.onrender.com/api/v1';
   }
 
   if (!rawBase) {
