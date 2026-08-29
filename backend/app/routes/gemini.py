@@ -3,12 +3,19 @@ from app.schemas.ai_schemas import (
     AnomalySummaryResponseSchema, ApprovalSupportRequestSchema,
     ApprovalSupportResponseSchema, AskQuestionRequestSchema,
     AskQuestionResponseSchema, CostExplanationResponseSchema,
-    ExecutiveReportResponseSchema, ScenarioAnalysisResponseSchema
+    ExecutiveReportResponseSchema, ScenarioAnalysisResponseSchema,
+    GeminiStatusSchema
 )
 from app.schemas.cost_prediction import CostPredictionRequestSchema
 from app.services.gemini_service import gemini_service
 
 router = APIRouter(prefix="/ai", tags=["gemini_intelligence"])
+
+
+# --- STATUS ENDPOINT ---
+@router.get("/status", response_model=GeminiStatusSchema)
+def get_gemini_status() -> GeminiStatusSchema:
+    return gemini_service.get_status()
 
 
 # --- CONTEXT ENDPOINTS ---
@@ -77,4 +84,7 @@ def get_executive_report() -> ExecutiveReportResponseSchema:
 def ask_gemini(payload: AskQuestionRequestSchema) -> AskQuestionResponseSchema:
     if not payload.question or not payload.question.strip():
         raise HTTPException(status_code=400, detail="Question prompt cannot be empty.")
-    return gemini_service.answer_natural_language_question(payload.question.strip())
+    return gemini_service.answer_natural_language_question(
+        question=payload.question.strip(),
+        scenario_id=payload.scenario_id
+    )

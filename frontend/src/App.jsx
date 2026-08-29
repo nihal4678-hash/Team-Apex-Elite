@@ -9,7 +9,7 @@ import {
   getRecommendations, applyRecommendation, resolveAlert, runSimulation,
   getSustainability, getGeminiCostExplanation, getGeminiAnomalySummary,
   getGeminiApprovalSupport, getGeminiScenarioAnalysis, getGeminiExecutiveReport,
-  askGeminiQuestion, getBackendReadiness
+  askGeminiQuestion, getBackendReadiness, getGeminiStatus
 } from './services/api'
 import { SimulationPage } from './pages/SimulationPage'
 import { ForecastPage } from './pages/ForecastPage'
@@ -52,10 +52,14 @@ function App() {
   const [isAsking, setIsAsking] = useState(false)
   const [activeScenarioFilter, setActiveScenarioFilter] = useState(null)
   const [readiness, setReadiness] = useState(null)
+  const [geminiStatus, setGeminiStatus] = useState(null)
 
   const loadData = async () => {
     const ready = await getBackendReadiness()
     if (ready) setReadiness(ready)
+
+    const gStatus = await getGeminiStatus()
+    if (gStatus) setGeminiStatus(gStatus)
 
     const snap = await getCampusSnapshot()
     if (snap) setSnapshot(snap)
@@ -131,8 +135,17 @@ function App() {
     e.preventDefault()
     if (!userQuery.trim()) return
     setIsAsking(true)
-    const ans = await askGeminiQuestion(userQuery)
-    setQaResult(ans)
+    const ans = await askGeminiQuestion(userQuery, activeScenarioFilter)
+    if (ans && ans.answer) {
+      setQaResult(ans)
+    } else {
+      setQaResult({
+        answer: `Gemini service is unavailable (${geminiStatus?.last_error_category || 'missing API key'}). Showing deterministic project analysis.`,
+        intent: 'general',
+        source_labels: ['Rule-based project analysis', 'Gemini unavailable'],
+        cited_metrics: ['Local Deterministic Telemetry Rule Engine']
+      })
+    }
     setIsAsking(false)
   }
 
@@ -236,12 +249,35 @@ function App() {
             </form>
 
             {qaResult && (
-              <div style={{ marginTop: '1rem', padding: '0.85rem 1rem', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                <strong style={{ color: '#15803d', display: 'block', marginBottom: '0.25rem' }}>Gemini Response:</strong>
-                <p style={{ margin: 0, color: '#166534', fontSize: '0.94rem' }}>{qaResult.answer}</p>
-                {qaResult.cited_metrics && (
-                  <small style={{ color: '#15803d', marginTop: '0.4rem', display: 'block' }}>
-                    Cited Sources: {qaResult.cited_metrics.join(', ')}
+              <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <strong style={{ color: '#15803d', fontSize: '0.92rem', textTransform: 'uppercase' }}>
+                    EcoMind Energy Intelligence Agent {qaResult.intent && `[${qaResult.intent.toUpperCase()}]`}
+                  </strong>
+                  <div style={{ display: 'flex', gap: '0.35rem' }}>
+                    {(qaResult.source_labels || ['Actual data']).map((src, sIdx) => (
+                      <span key={sIdx} style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '12px', background: src.includes('Simulated') ? '#e0f2fe' : '#dcfce7', color: src.includes('Simulated') ? '#0369a1' : '#15803d', fontWeight: 600 }}>
+                        {src}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <p style={{ margin: 0, color: '#166534', fontSize: '0.95rem', lineHeight: '1.5' }}>{qaResult.answer}</p>
+
+                {qaResult.supporting_metrics && qaResult.supporting_metrics.length > 0 && (
+                  <div style={{ marginTop: '0.6rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    {qaResult.supporting_metrics.map((m, mIdx) => (
+                      <span key={mIdx} style={{ fontSize: '0.78rem', background: '#ffffff', border: '1px solid #bbf7d0', padding: '0.2rem 0.55rem', borderRadius: '6px', color: '#14532d', fontWeight: 500 }}>
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {qaResult.suggested_action && (
+                  <small style={{ color: '#15803d', marginTop: '0.6rem', display: 'block', fontWeight: 600 }}>
+                    Recommended Action: {qaResult.suggested_action}
                   </small>
                 )}
               </div>

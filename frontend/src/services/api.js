@@ -286,6 +286,11 @@ export async function triggerAgentRun(stage = null) {
 }
 
 // --- GEMINI INTELLIGENCE API CALLS ---
+export async function getGeminiStatus() {
+  const data = await fetchJson('/ai/status');
+  return data || { configured: false, provider_reachable: false, selected_model: 'gemini-2.5-flash', last_error_category: 'missing_api_key' };
+}
+
 export async function getGeminiCostExplanation() {
   return await fetchJson('/ai/cost-explanation');
 }
@@ -309,9 +314,9 @@ export async function getGeminiExecutiveReport() {
   return await fetchJson('/ai/report');
 }
 
-export async function askGeminiQuestion(question) {
+export async function askGeminiQuestion(question, scenarioId = null) {
   return await fetchJson('/ai/ask', {
     method: 'POST',
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, scenario_id: scenarioId }),
   });
 }

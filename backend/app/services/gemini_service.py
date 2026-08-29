@@ -1,16 +1,20 @@
 import json
 import logging
 import os
+import re
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
 from app.core.config import settings
 from app.repositories.db_repository import db_repository
+from app.database.database import SessionLocal
+from app.models.db_models import SimulationScenarioRunDB, SimulatedReadingDB, AlertDB
 from app.schemas.ai_schemas import (
     AnomalySummaryResponseSchema, ApprovalSupportResponseSchema,
     AskQuestionResponseSchema, CostExplanationResponseSchema,
-    ExecutiveReportResponseSchema, ScenarioAnalysisResponseSchema
+    ExecutiveReportResponseSchema, ScenarioAnalysisResponseSchema,
+    GeminiStatusSchema
 )
 from app.schemas.cost_prediction import CostPredictionRequestSchema
 from app.services.cost_prediction_service import cost_prediction_service
@@ -19,8 +23,16 @@ logger = logging.getLogger("ecomind.gemini")
 
 
 class GeminiService:
+    SYSTEM_INSTRUCTION = (
+        "You are EcoMind Energy Intelligence Agent for Vignan University. Answer using only the supplied campus data. "
+        "Do not invent readings, savings, alerts, or facts. Clearly distinguish actual data from simulated data. "
+        "Explain calculations in plain language. Mention uncertainty when data is unavailable. "
+        "Never claim a recommendation was applied unless the system confirms human approval."
+    )
+
     def __init__(self):
         self.active_key_index = 0
+        self.last_error_category = "none"
 
     def get_api_keys_pool(self) -> list[str]:
         raw_keys = os.getenv("GEMINI_API_KEYS", "") or settings.GEMINI_API_KEY or os.getenv("GEMINI_API_KEY", "")
@@ -29,21 +41,33 @@ class GeminiService:
 
     @property
     def model_name(self) -> str:
-        return settings.GEMINI_MODEL or os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+        return settings.GEMINI_MODEL or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+    def get_status(self) -> GeminiStatusSchema:
+        keys_pool = self.get_api_keys_pool()
+        is_configured = len(keys_pool) > 0
+        is_reachable = is_configured and self.last_error_category in ("none", "quota_exceeded")
+
+        return GeminiStatusSchema(
+            configured=is_configured,
+            provider_reachable=is_reachable,
+            selected_model=self.model_name,
+            last_error_category=self.last_error_category if is_configured else "missing_api_key"
+        )
 
     def _call_gemini_api(self, prompt: str, system_instruction: str = "") -> str | None:
         """Call Google Gemini REST API with automatic multi-key rotation on 429/403 rate limits."""
         keys_pool = self.get_api_keys_pool()
         if not keys_pool:
+            self.last_error_category = "missing_api_key"
             return None
 
         models_to_try = [
-            "models/gemini-flash-latest",
             "models/gemini-2.5-flash",
+            "models/gemini-flash-latest",
             "models/gemini-2.5-flash-lite",
         ]
 
-        # Try key pool failover loop
         attempts = 0
         max_attempts = len(keys_pool)
 
@@ -55,8 +79,9 @@ class GeminiService:
                 m_path = m if m.startswith("models/") else f"models/{m}"
                 url = f"https://generativelanguage.googleapis.com/v1beta/{m_path}:generateContent?key={current_key}"
                 payload = {"contents": [{"parts": [{"text": prompt}]}]}
-                if system_instruction:
-                    payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
+                
+                sys_inst = system_instruction or self.SYSTEM_INSTRUCTION
+                payload["systemInstruction"] = {"parts": [{"text": sys_inst}]}
 
                 req = urllib.request.Request(
                     url,
@@ -66,7 +91,7 @@ class GeminiService:
                 )
 
                 try:
-                    with urllib.request.urlopen(req, timeout=6) as response:
+                    with urllib.request.urlopen(req, timeout=8) as response:
                         res_data = json.loads(response.read().decode("utf-8"))
                         candidates = res_data.get("candidates", [])
                         if candidates:
@@ -74,33 +99,285 @@ class GeminiService:
                             if parts:
                                 text = parts[0].get("text", "").strip()
                                 if text:
+                                    self.last_error_category = "none"
                                     return text
+                        self.last_error_category = "malformed_response"
                 except urllib.error.HTTPError as e:
                     e.close()
                     if e.code in (429, 403):
-                        # Rate limit or quota hit on this key -> Rotate to next key in pool!
                         self.active_key_index = (self.active_key_index + 1) % len(keys_pool)
-                        logger.warning(f"Key #{self.active_key_index} hit quota ({e.code}). Automatically rotated to key index {self.active_key_index}.")
+                        self.last_error_category = "quota_exceeded" if e.code == 429 else "invalid_api_key"
+                        logger.warning(f"Key #{self.active_key_index} hit HTTP {e.code}. Rotated to next key in pool.")
                         break  # Break model loop to retry next key
+                    else:
+                        self.last_error_category = "network_failure"
                     continue
                 except Exception as e:
+                    self.last_error_category = "network_failure"
                     logger.debug(f"Gemini API call ({m_path}) exception: {e}")
                     continue
 
         return None
 
-    # --- CONTEXT AGGREGATION METHODS ---
+    # --- INTENT & ENTITY PARSING ---
+    def classify_intent_and_entities(self, question: str, scenario_id: str = None) -> tuple[str, dict]:
+        q_lower = question.lower()
+        entities = {}
+
+        # Check for scenario ID pattern
+        sim_match = re.search(r"sim-[a-f0-9]{8}", q_lower)
+        if sim_match:
+            entities["scenario_id"] = sim_match.group(0).upper()
+        elif scenario_id:
+            entities["scenario_id"] = scenario_id.upper()
+
+        # Check building names
+        buildings_map = {
+            "blk-a": "Academic Block A",
+            "academic block a": "Academic Block A",
+            "blk-b": "Academic Block B",
+            "academic block b": "Academic Block B",
+            "blk-c": "Administrative Block C",
+            "lab-cse": "Computer Science Laboratories",
+            "cse": "Computer Science Laboratories",
+            "lib": "Central Library (NTR)",
+            "library": "Central Library (NTR)",
+            "hostel": "Priyadarsini Girls Hostel",
+            "girls hostel": "Priyadarsini Girls Hostel",
+            "boys hostel": "Vignan Vihar Boys Hostel",
+        }
+        for kw, b_name in buildings_map.items():
+            if kw in q_lower:
+                entities["building_name"] = b_name
+                break
+
+        # Classify intent
+        if any(w in q_lower for w in ["simulat", "scenario", "sim-"]):
+            intent = "simulation"
+        elif any(w in q_lower for w in ["flagged", "anomaly", "leak", "waste", "night", "alert"]):
+            intent = "anomaly"
+        elif any(w in q_lower for w in ["forecast", "predict", "future", "next month"]):
+            intent = "forecast"
+        elif any(w in q_lower for w in ["recommendation", "action", "setback", "approve"]):
+            intent = "recommendation"
+        elif any(w in q_lower for w in ["carbon", "co2", "solar", "green", "sustainab", "emission"]):
+            intent = "sustainability"
+        elif "building_name" in entities:
+            intent = "building"
+        else:
+            intent = "overview"
+
+        return intent, entities
+
+    # --- FACTUAL CONTEXT RETRIEVAL ---
+    def retrieve_intent_context(self, intent: str, entities: dict) -> tuple[dict, list[str]]:
+        sources = []
+        ctx = {}
+
+        db = SessionLocal()
+        try:
+            if intent == "simulation":
+                sources.append("Simulated scenario data")
+                target_sc_id = entities.get("scenario_id")
+                if target_sc_id:
+                    sc = db.query(SimulationScenarioRunDB).filter(SimulationScenarioRunDB.scenario_id == target_sc_id).first()
+                else:
+                    sc = db.query(SimulationScenarioRunDB).filter(SimulationScenarioRunDB.status == "completed").order_by(SimulationScenarioRunDB.created_at.desc()).first()
+
+                if sc:
+                    readings_count = db.query(SimulatedReadingDB).filter(SimulatedReadingDB.scenario_id == sc.scenario_id).count()
+                    ctx["simulation_scenario"] = {
+                        "scenario_id": sc.scenario_id,
+                        "status": sc.status,
+                        "start_datetime": sc.simulation_start_datetime,
+                        "end_datetime": sc.simulation_end_datetime,
+                        "selected_scope": sc.building_ids,
+                        "completed_records": sc.completed_hourly_records or readings_count,
+                        "total_records": sc.total_hourly_records,
+                        "saved_kwh": sc.total_saved_kwh,
+                        "saved_inr": sc.total_saved_inr,
+                        "co2_avoided_kg": sc.total_co2_reduced_kg,
+                        "after_hours_monitoring": sc.after_hours_monitoring,
+                    }
+                else:
+                    ctx["simulation_scenario"] = {"status": "no_completed_scenario_found"}
+
+            elif intent == "anomaly":
+                sources.append("Actual data")
+                sources.append("Alert Audit Logs")
+                alerts = db.query(AlertDB).order_by(AlertDB.created_at.desc()).all()
+                if entities.get("building_name"):
+                    alerts = [a for a in alerts if entities["building_name"].lower() in a.building.lower()]
+
+                top_alerts = [
+                    {
+                        "id": a.id,
+                        "building": a.building,
+                        "type": a.type,
+                        "severity": a.severity,
+                        "message": a.message,
+                        "action": a.recommended_action,
+                        "estimated_waste_kwh": a.estimated_waste_kwh,
+                        "estimated_cost_inr": a.estimated_cost_inr,
+                        "time_context": "Night hours (22:00-06:00). Essential allowed load: CCTV & Security (~15 kWh/hr)."
+                    }
+                    for a in alerts[:5]
+                ]
+                ctx["anomalies"] = {
+                    "total_alerts": len(alerts),
+                    "critical_alerts": sum(1 for a in alerts if a.severity == "critical"),
+                    "top_alerts": top_alerts
+                }
+
+            elif intent == "forecast":
+                sources.append("Forecast data")
+                pred = cost_prediction_service.predict_next_month_cost(CostPredictionRequestSchema())
+                ctx["forecast"] = pred.model_dump()
+
+            elif intent == "recommendation":
+                sources.append("Actual data")
+                recs = db_repository.get_recommendations()
+                ctx["recommendations"] = [
+                    {
+                        "id": r.get("recommendation_id"),
+                        "title": r.get("title"),
+                        "saved_inr": r.get("money_saved_inr"),
+                        "co2_reduced_kg": r.get("co2_reduced_kg"),
+                        "human_approval_required": True,
+                        "status": "pending_human_approval"
+                    }
+                    for r in recs[:4]
+                ]
+
+            elif intent == "sustainability":
+                sources.append("Actual data")
+                ctx["sustainability"] = db_repository.get_sustainability_data()
+
+            elif intent == "building":
+                sources.append("Actual data")
+                b_name = entities.get("building_name", "Academic Block A")
+                b_list = db_repository.get_buildings()
+                matched = next((b for b in b_list if b_name.lower() in b["name"].lower()), b_list[0] if b_list else {})
+                ctx["building_telemetry"] = matched
+
+            else:
+                sources.append("Actual data")
+                ctx["snapshot"] = db_repository.get_snapshot()
+
+            return ctx, sources
+        finally:
+            db.close()
+
+    # --- GEMINI INTELLIGENCE ASSISTANT (MAIN Q&A ROUTER) ---
+    def answer_natural_language_question(self, question: str, scenario_id: str = None) -> AskQuestionResponseSchema:
+        if not question or not question.strip():
+            raise ValueError("Question prompt cannot be empty.")
+
+        q_clean = question.strip()
+        now_str = datetime.now(timezone.utc).isoformat()
+
+        intent, entities = self.classify_intent_and_entities(q_clean, scenario_id)
+        factual_context, source_labels = self.retrieve_intent_context(intent, entities)
+
+        prompt = f"""
+        User Intent: {intent.upper()}
+        Entities Detected: {json.dumps(entities)}
+        Factual Project Context: {json.dumps(factual_context)}
+
+        Question: {q_clean}
+
+        Provide a structured, plain-English response. Follow this format:
+        1. Direct concise answer first.
+        2. "Why": Factual project reasoning.
+        3. "Supporting Metrics": List 2-4 key numeric values.
+        4. "Recommended Action": Operational advice if applicable. State clearly if human approval is required.
+        """
+
+        gemini_text = self._call_gemini_api(prompt)
+
+        if gemini_text:
+            return AskQuestionResponseSchema(
+                question=q_clean,
+                answer=gemini_text,
+                intent=intent,
+                explanation="AI reasoning synthesized from live telemetry & ML models.",
+                supporting_metrics=[f"Intent: {intent}"] + [f"{k}: {v}" for k, v in entities.items()],
+                cited_metrics=["VFSTR Campus Telemetry", "EcoMind ML Engine"],
+                source_labels=source_labels,
+                confidence_score=0.98,
+                suggested_action="Review details in corresponding dashboard section.",
+                timestamp=now_str
+            )
+
+        # Deterministic Intent-Specific Fallback (when Gemini API is unreachable / quota hit)
+        fallback_answer, supporting_data, action = self._build_deterministic_fallback(intent, entities, factual_context)
+
+        return AskQuestionResponseSchema(
+            question=q_clean,
+            answer=fallback_answer,
+            intent=intent,
+            explanation=f"Rule-based project analysis (Gemini status: {self.last_error_category}).",
+            supporting_metrics=supporting_data,
+            cited_metrics=["Local Deterministic Telemetry Rule Engine"],
+            source_labels=source_labels + ["Fallback/demo data"],
+            confidence_score=0.82,
+            suggested_action=action,
+            timestamp=now_str
+        )
+
+    def _build_deterministic_fallback(self, intent: str, entities: dict, ctx: dict) -> tuple[str, list[str], str]:
+        if intent == "simulation":
+            sc_data = ctx.get("simulation_scenario", {})
+            sc_id = sc_data.get("scenario_id", "SIM-LATEST")
+            saved_kwh = sc_data.get("saved_kwh", 0.0)
+            saved_inr = sc_data.get("saved_inr", 0.0)
+            status = sc_data.get("status", "completed")
+            ans = f"Simulation scenario **{sc_id}** is currently **{status}**. It recorded **{saved_kwh:,.1f} kWh** in saved energy, yielding **₹{saved_inr:,.2f}** monetary savings."
+            metrics = [f"Scenario ID: {sc_id}", f"Saved Energy: {saved_kwh} kWh", f"Saved Cost: ₹{saved_inr:,.2f}"]
+            action = "Inspect hourly simulation load curves in Simulation tab."
+
+        elif intent == "anomaly":
+            anom_data = ctx.get("anomalies", {})
+            total_al = anom_data.get("total_alerts", 0)
+            crit_al = anom_data.get("critical_alerts", 0)
+            top_b = entities.get("building_name", "Academic Block A")
+            ans = f"Detected **{total_al} total anomalies** ({crit_al} critical). Primary waste issue in **{top_b}** is driven by un-setback HVAC systems operating post-18:00."
+            metrics = [f"Total Alerts: {total_al}", f"Critical Alerts: {crit_al}", f"Target Building: {top_b}"]
+            action = "Inspect after-hours HVAC setpoint and motion sensors."
+
+        elif intent == "forecast":
+            fc_data = ctx.get("forecast", {})
+            pred_cost = fc_data.get("predicted_cost_inr", 55536.51)
+            target_m = fc_data.get("target_month", "Next Month")
+            ans = f"The projected electricity cost for **{target_m}** is **₹{pred_cost:,.2f}**, driven primarily by expected outdoor summer temperatures."
+            metrics = [f"Target Month: {target_m}", f"Predicted Cost: ₹{pred_cost:,.2f}"]
+            action = "Pre-cool laboratories 45 mins prior to peak afternoon heat."
+
+        elif intent == "recommendation":
+            recs = ctx.get("recommendations", [])
+            top_rec = recs[0] if recs else {"title": "After-hours HVAC setback", "saved_inr": 4805.61}
+            ans = f"Top recommended action: **{top_rec.get('title')}**, delivering **₹{top_rec.get('saved_inr'):,.2f}** in monthly savings. Requires human approval."
+            metrics = [f"Action: {top_rec.get('title')}", f"Savings: ₹{top_rec.get('saved_inr'):,.2f}", "Status: Pending Approval"]
+            action = "Click 'Approve Recommendation' in recommendations panel."
+
+        else:
+            snap = ctx.get("snapshot", {})
+            used_today = snap.get("energy_used_today_kwh", 847)
+            saved_month = snap.get("money_saved_month_inr", 55536.51)
+            ans = f"Vignan University campus energy consumption today is **{used_today} kWh**. Total monthly savings stand at **₹{saved_month:,.2f}**."
+            metrics = [f"Today Used: {used_today} kWh", f"Monthly Savings: ₹{saved_month:,.2f}"]
+            action = "Review building leaderboard in Sustainability tab."
+
+        return ans, metrics, action
+
+    # --- LEGACY CONTEXT METHODS ---
     def get_forecast_context(self) -> dict:
         return db_repository.get_forecast()
 
     def get_anomalies_context(self) -> dict:
         alerts = db_repository.get_alerts()
         top_alerts = sorted(alerts, key=lambda x: x.get("estimated_cost_inr", 0), reverse=True)[:5]
-        return {
-            "total_count": len(alerts),
-            "critical_count": sum(1 for a in alerts if a.get("severity") == "critical"),
-            "top_5_anomalies": top_alerts,
-        }
+        return {"total_count": len(alerts), "critical_count": sum(1 for a in alerts if a.get("severity") == "critical"), "top_5_anomalies": top_alerts}
 
     def get_recommendations_context(self) -> list[dict]:
         return db_repository.get_recommendations()
@@ -113,126 +390,60 @@ class GeminiService:
         pred = cost_prediction_service.predict_next_month_cost(default_req)
         return pred.model_dump()
 
-    # --- GEMINI INTELLIGENCE ROLE 1: COST FORECAST EXPLAINER ---
     def explain_cost_forecast(self, req: CostPredictionRequestSchema = None) -> CostExplanationResponseSchema:
         if req is None:
             req = CostPredictionRequestSchema()
-
         pred = cost_prediction_service.predict_next_month_cost(req)
-
-        prompt = f"""
-        Explain the university energy cost forecast for {pred.target_month} at Vignan University.
-        Predicted Cost: ₹{pred.predicted_cost_inr:,.2f} (MoM Change: {pred.mom_change_percent}%).
-        Previous Month Cost: ₹{req.previous_month_cost_inr:,.2f}.
-        Expected Weather: {req.expected_temperature_c}°C, {req.expected_humidity_pct}% humidity.
-        Exam Season: {req.is_exam_season}.
-        Top Drivers: {[d.driver for d in pred.top_cost_drivers]}.
-        Provide a concise plain-English explanation of why energy cost is changing and what actions to take.
-        """
-
-        gemini_text = self._call_gemini_api(prompt, "You are EcoMind AI energy forecast explainer.")
-
-        if not gemini_text:
-            summary = f"Next month's energy cost for {pred.target_month} is projected at ₹{pred.predicted_cost_inr:,.2f}, representing a {pred.mom_change_percent}% change compared to last month."
-            trend_exp = f"The primary cost elevation is driven by higher expected outdoor temperatures ({req.expected_temperature_c}°C), which increases HVAC cooling load across academic blocks and CSE laboratories."
-            if req.is_exam_season:
-                trend_exp += " Additionally, university examination schedules extend lab and central library operating hours into late evening."
-        else:
-            summary = gemini_text[:250] + "..." if len(gemini_text) > 250 else gemini_text
-            trend_exp = gemini_text
-
+        prompt = f"Explain cost forecast for {pred.target_month}: ₹{pred.predicted_cost_inr:,.2f}."
+        gemini_text = self._call_gemini_api(prompt)
+        summary = gemini_text[:250] if gemini_text else f"Next month energy cost projected at ₹{pred.predicted_cost_inr:,.2f}."
         return CostExplanationResponseSchema(
             target_month=pred.target_month,
             predicted_cost_inr=pred.predicted_cost_inr,
             summary=summary,
             top_drivers=[d.model_dump() for d in pred.top_cost_drivers],
-            cost_trend_explanation=trend_exp,
-            suggested_mitigations=[
-                "Enforce 26°C after-hours HVAC setback in Academic Blocks A & B.",
-                "Pre-cool CSE laboratories 45 minutes before peak 15:30 heat window.",
-                "Consolidate late-night study sections into designated Central Library floors."
-            ]
+            cost_trend_explanation=summary,
+            suggested_mitigations=["Enforce 26°C after-hours HVAC setback.", "Pre-cool labs 45 mins before peak."]
         )
 
-    # --- GEMINI INTELLIGENCE ROLE 2: ANOMALY EXPLAINER ---
     def summarize_anomalies(self) -> AnomalySummaryResponseSchema:
         ctx = self.get_anomalies_context()
-        top_alerts = ctx["top_5_anomalies"]
-
-        prompt = f"Summarize these top 5 campus energy waste anomalies for Vignan University in plain English with clear operational advice: {json.dumps(top_alerts)}"
-        gemini_text = self._call_gemini_api(prompt, "You are EcoMind AI anomaly explainer.")
-
-        if not gemini_text:
-            op_advice = f"Detected {ctx['total_count']} total energy anomalies ({ctx['critical_count']} critical). Primary waste is concentrated in un-setback HVAC systems running post-18:00 in low-occupancy academic rooms and empty room lighting."
-        else:
-            op_advice = gemini_text
-
+        prompt = f"Summarize waste anomalies: {json.dumps(ctx)}"
+        gemini_text = self._call_gemini_api(prompt)
+        advice = gemini_text if gemini_text else f"Detected {ctx['total_count']} total energy anomalies. Primary waste in post-18:00 HVAC."
         return AnomalySummaryResponseSchema(
             total_anomalies_count=ctx["total_count"],
             critical_count=ctx["critical_count"],
-            top_5_waste_issues=top_alerts,
-            operational_advice=op_advice
+            top_5_waste_issues=ctx["top_5_anomalies"],
+            operational_advice=advice
         )
 
-    # --- GEMINI INTELLIGENCE ROLE 3: RECOMMENDATION ADVISOR ---
     def evaluate_approval_support(self, recommendation_id: str) -> ApprovalSupportResponseSchema:
         recs = db_repository.get_recommendations()
-        target = next((r for r in recs if r.get("recommendation_id") == recommendation_id), None)
-
-        if not target:
-            target = recs[0] if recs else {
-                "recommendation_id": recommendation_id,
-                "title": "HVAC Pre-Cooling Action",
-                "energy_saved_kwh": 549.2,
-                "money_saved_inr": 4805.61,
-                "co2_reduced_kg": 450.35,
-                "buildings": ["BLK-A", "LAB-CSE"]
-            }
-
-        title = target.get("title", "Optimization Action")
-        saved_inr = target.get("money_saved_inr", 4805.61)
-
-        prompt = f"Evaluate recommendation approval for '{title}' (Savings: ₹{saved_inr:,.2f}, Impacted Buildings: {target.get('buildings')}). State whether to APPROVE, provide reasoning, and list operational disruption risks."
-        gemini_text = self._call_gemini_api(prompt, "You are EcoMind AI recommendation approval advisor.")
-
-        verdict = "APPROVE"
-        disruption = "Low"
-        reasoning = f"APPROVE: '{title}' delivers ₹{saved_inr:,.2f} in immediate monthly cost savings with low disruption to daytime academic classes."
-        risk_notes = "Minimal risk. Action schedules HVAC setback outside core lecture hours (18:00–06:00)."
-
-        if gemini_text:
-            reasoning = gemini_text
-
+        target = next((r for r in recs if r.get("recommendation_id") == recommendation_id), recs[0] if recs else {})
+        title = target.get("title", "HVAC Action")
+        saved = target.get("money_saved_inr", 4805.61)
+        prompt = f"Evaluate approval for '{title}' (Savings: ₹{saved:,.2f}). State verdict APPROVE."
+        gemini_text = self._call_gemini_api(prompt)
+        reasoning = gemini_text if gemini_text else f"APPROVE: '{title}' delivers ₹{saved:,.2f} in immediate savings with low disruption."
         return ApprovalSupportResponseSchema(
             recommendation_id=target.get("recommendation_id", recommendation_id),
             title=title,
-            verdict=verdict,
+            verdict="APPROVE",
             reasoning=reasoning,
-            financial_benefit_inr=saved_inr,
-            operational_disruption_risk=disruption,
-            risk_notes=risk_notes
+            financial_benefit_inr=saved,
+            operational_disruption_risk="Low",
+            risk_notes="Action schedules HVAC setback outside lecture hours."
         )
 
-    # --- GEMINI INTELLIGENCE ROLE 4: SCENARIO ANALYST ---
     def analyze_scenarios(self, req: CostPredictionRequestSchema = None) -> ScenarioAnalysisResponseSchema:
         if req is None:
             req = CostPredictionRequestSchema()
-
         pred = cost_prediction_service.predict_next_month_cost(req)
         sc = pred.scenarios
-
-        prompt = f"Compare energy cost scenarios for {pred.target_month}: Optimistic (₹{sc.optimistic_inr:,.2f}), Baseline (₹{sc.baseline_inr:,.2f}), Pessimistic (₹{sc.pessimistic_inr:,.2f}). Provide a narrative summary."
-        gemini_text = self._call_gemini_api(prompt, "You are EcoMind AI scenario analyst.")
-
-        narrative = (
-            f"For {pred.target_month}, baseline campus electricity cost is estimated at ₹{sc.baseline_inr:,.2f}. "
-            f"Under an Optimistic Scenario with full EcoMind closed-loop setback controls, monthly expenditure drops to ₹{sc.optimistic_inr:,.2f} (saving ₹{sc.baseline_inr - sc.optimistic_inr:,.2f}). "
-            f"Conversely, a severe heatwave or unmonitored post-hours lab usage could surge costs to ₹{sc.pessimistic_inr:,.2f} (+12.5%)."
-        )
-
-        if gemini_text:
-            narrative = gemini_text
-
+        prompt = f"Compare energy scenarios for {pred.target_month}: Baseline ₹{sc.baseline_inr:,.2f}, Optimistic ₹{sc.optimistic_inr:,.2f}."
+        gemini_text = self._call_gemini_api(prompt)
+        narrative = gemini_text if gemini_text else f"For {pred.target_month}, baseline cost is ₹{sc.baseline_inr:,.2f}. Optimistic scenario saves ₹{sc.baseline_inr - sc.optimistic_inr:,.2f}."
         return ScenarioAnalysisResponseSchema(
             target_month=pred.target_month,
             baseline_cost_inr=sc.baseline_inr,
@@ -241,24 +452,12 @@ class GeminiService:
             narrative_comparison=narrative
         )
 
-    # --- GEMINI INTELLIGENCE ROLE 5: EXECUTIVE REPORT WRITER ---
     def generate_executive_report(self) -> ExecutiveReportResponseSchema:
         sus = db_repository.get_sustainability_data()
         snapshot = db_repository.get_snapshot()
-        recs = db_repository.get_recommendations()
-
-        prompt = f"Generate an executive dean-ready energy & sustainability summary report for Vignan University based on: {json.dumps(sus)}"
-        gemini_text = self._call_gemini_api(prompt, "You are EcoMind AI executive report writer.")
-
-        exec_summary = (
-            f"Vignan University (VFSTR) campus operations maintained efficient energy performance over the past period, "
-            f"avoiding {snapshot['carbon_avoided_kg']:,.1f} kg CO₂ and saving ₹{snapshot['money_saved_month_inr']:,.2f} in total energy costs. "
-            f"Implementing top AI optimization recommendations will yield an additional ₹{sum(r.get('money_saved_inr', 0) for r in recs):,.2f} in financial savings."
-        )
-
-        if gemini_text:
-            exec_summary = gemini_text
-
+        prompt = f"Generate executive summary: {json.dumps(sus)}"
+        gemini_text = self._call_gemini_api(prompt)
+        exec_summary = gemini_text if gemini_text else f"VFSTR campus avoided {snapshot['carbon_avoided_kg']} kg CO2 and saved ₹{snapshot['money_saved_month_inr']:,.2f}."
         return ExecutiveReportResponseSchema(
             campus_name="Vignan's Foundation for Science, Technology & Research (VFSTR)",
             time_period="Monthly Operational Cycle 2026",
@@ -267,54 +466,9 @@ class GeminiService:
                 "total_carbon_avoided_kg": snapshot["carbon_avoided_kg"],
                 "total_money_saved_inr": snapshot["money_saved_month_inr"],
                 "peak_demand_kw": snapshot["peak_demand_kw"],
-                "tariff_rate": "₹8.75 / kWh",
-                "grid_carbon_factor": "0.82 kg CO₂ / kWh",
             },
-            top_inefficiencies=[
-                "Un-setback HVAC systems in Academic Block A after 18:00",
-                "Occupancy-zero lighting left active in empty science lecture rooms",
-                "Uncalibrated computer lab batch job schedules during peak 14:00 demand"
-            ],
-            strategic_action_plan=[
-                "Execute automated after-hours HVAC setback across Academic Blocks A, B, and C.",
-                "Enforce 10-minute occupancy sensor auto-off shutoff in non-essential rooms.",
-                "Pre-cool CSE laboratories prior to 15:30 afternoon heat peaks."
-            ]
-        )
-
-    # --- GEMINI INTELLIGENCE ROLE 6: NATURAL LANGUAGE Q&A ---
-    def answer_natural_language_question(self, question: str) -> AskQuestionResponseSchema:
-        q_lower = question.lower()
-        now_str = datetime.now(timezone.utc).isoformat()
-        snapshot = db_repository.get_snapshot()
-        buildings = db_repository.get_buildings()
-        recs = db_repository.get_recommendations()
-
-        context_str = f"Campus: Vignan University. Snapshot: {json.dumps(snapshot)}. Top Buildings: {json.dumps(buildings[:4])}. Top Actions: {json.dumps(recs[:3])}."
-
-        prompt = f"User Question: {question}\nCampus Context Facts: {context_str}\nAnswer concisely using only the facts provided."
-        gemini_text = self._call_gemini_api(prompt, "You are EcoMind AI energy manager Q&A assistant.")
-
-        if gemini_text:
-            answer = gemini_text
-            cited = ["Vignan University Telemetry & Live Gemini 2.5 API"]
-        elif "building" in q_lower or "highest" in q_lower or "waste" in q_lower:
-            highest_b = max(buildings, key=lambda b: b.get("kw", 0)) if buildings else {"name": "Academic Block A", "kw": 218}
-            answer = f"According to live telemetry, **{highest_b['name']}** recorded the highest consumption at **{highest_b['kw']} kW** ({highest_b['load']}% capacity load)."
-            cited = [f"Building Telemetry: {highest_b['id']}"]
-        elif "cost" in q_lower or "bill" in q_lower or "save" in q_lower:
-            answer = f"Total projected monthly cost savings stand at **₹{snapshot['money_saved_month_inr']:,.2f}**, with **{snapshot['carbon_avoided_kg']:,.1f} kg CO₂** avoided."
-            cited = ["Monthly ESG & Sustainability Audit"]
-        else:
-            answer = f"Vignan University campus energy is operating efficiently at **{snapshot['peak_demand_kw']} kW** peak demand. Total monthly carbon avoided is **{snapshot['carbon_avoided_kg']} kg CO₂**."
-            cited = ["Campus Snapshot Telemetry"]
-
-        return AskQuestionResponseSchema(
-            question=question,
-            answer=answer,
-            cited_metrics=cited,
-            confidence_score=0.98,
-            timestamp=now_str
+            top_inefficiencies=["Un-setback HVAC systems post-18:00", "Occupancy-zero lighting active in empty lecture rooms"],
+            strategic_action_plan=["Enforce after-hours HVAC setback", "Pre-cool CSE labs prior to afternoon heat"]
         )
 
 

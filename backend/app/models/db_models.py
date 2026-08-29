@@ -241,6 +241,7 @@ class SimulationScenarioRunDB(Base):
     failure_message = Column(Text, nullable=True)
     months_run = Column(Text, nullable=False, default="[]")  # JSON list of month numbers
     building_ids = Column(Text, nullable=False, default="[]")  # JSON list of building IDs
+    building_snapshot_json = Column(Text, nullable=False, default="[]")  # JSON list of building metadata objects
     temperature_delta = Column(Float, default=-2.0)
     occupancy_scale = Column(Float, default=1.0)
     include_solar = Column(Boolean, default=True)

@@ -51,7 +51,8 @@ def init_db():
                 "started_at": "VARCHAR",
                 "stopped_at": "VARCHAR",
                 "completed_at": "VARCHAR",
-                "failure_message": "TEXT"
+                "failure_message": "TEXT",
+                "building_snapshot_json": "TEXT DEFAULT '[]'"
             }
             for col_name, col_type in new_cols.items():
                 if col_name not in cols:

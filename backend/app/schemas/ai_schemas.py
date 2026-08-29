@@ -1,18 +1,31 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
 class AskQuestionRequestSchema(BaseModel):
     question: str = Field(..., description="User natural language question about campus energy")
-    context_filter: Optional[str] = Field(default=None, description="Optional domain filter: cost, forecast, anomaly, recommendation, sustainability")
+    context_filter: Optional[str] = Field(default=None, description="Optional domain filter: cost, forecast, anomaly, recommendation, sustainability, simulation")
+    scenario_id: Optional[str] = Field(default=None, description="Optional scenario ID for simulation questions")
 
 
 class AskQuestionResponseSchema(BaseModel):
     question: str
     answer: str
-    cited_metrics: list[str]
+    intent: str = "general"
+    explanation: Optional[str] = None
+    supporting_metrics: List[str] = []
+    cited_metrics: List[str] = []
+    source_labels: List[str] = ["Actual data"]
     confidence_score: float = 0.95
+    suggested_action: Optional[str] = None
     timestamp: str
+
+
+class GeminiStatusSchema(BaseModel):
+    configured: bool
+    provider_reachable: bool
+    selected_model: str
+    last_error_category: str  # none, missing_api_key, invalid_api_key, quota_exceeded, network_failure, malformed_response
 
 
 class CostExplanationResponseSchema(BaseModel):

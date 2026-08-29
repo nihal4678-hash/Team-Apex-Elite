@@ -147,6 +147,8 @@ class LoopSimulationService:
 
             scenario_id = f"SIM-{uuid.uuid4().hex[:8].upper()}"
 
+            logger.info("PLANNING STAGE: %d selected buildings (%s), planned records: %d", len(target_buildings), [b['id'] for b in target_buildings], total_planned_records)
+
             run_record = SimulationScenarioRunDB(
                 scenario_id=scenario_id,
                 data_source="simulated_vignan_loop",
@@ -162,6 +164,7 @@ class LoopSimulationService:
                 started_at=datetime.now(timezone.utc).isoformat(),
                 months_run=json.dumps(list(set([dt.month for dt in date_range]))),
                 building_ids=json.dumps([b["id"] for b in target_buildings]),
+                building_snapshot_json=json.dumps(target_buildings),
                 temperature_delta=req.temperature_delta,
                 occupancy_scale=req.occupancy_scale,
                 include_solar=req.include_solar,
@@ -172,7 +175,7 @@ class LoopSimulationService:
             # Launch background worker thread
             thread = threading.Thread(
                 target=LoopSimulationService._execute_controlled_loop_worker,
-                args=(scenario_id, start_str, end_str, req, [b["id"] for b in target_buildings]),
+                args=(scenario_id, start_str, end_str, req, target_buildings),
                 daemon=True
             )
             thread.start()
@@ -193,17 +196,19 @@ class LoopSimulationService:
             db.close()
 
     @staticmethod
-    def _execute_controlled_loop_worker(scenario_id: str, start_str: str, end_str: str, req: LoopSimulationRequestSchema, building_ids: list[str]):
+    def _execute_controlled_loop_worker(scenario_id: str, start_str: str, end_str: str, req: LoopSimulationRequestSchema, target_buildings: list[dict]):
         """Background worker thread executing live hourly simulation loop with alert processing and cancel checks."""
         init_db()
         db = SessionLocal()
 
         try:
-            target_buildings = [b for b in LoopSimulationService.DEFAULT_BUILDINGS if b["id"] in building_ids]
             if not target_buildings:
                 target_buildings = LoopSimulationService.DEFAULT_BUILDINGS
 
             date_range = pd.date_range(start_str, end_str, freq="1h")
+            total_planned_records = len(date_range) * len(target_buildings)
+            logger.info("WORKER STAGE: %d selected buildings (%s), planned records: %d", len(target_buildings), [b['id'] for b in target_buildings], total_planned_records)
+
             rng = np.random.default_rng(seed=42)
 
             tariff = CAMPUS.get("tariff_inr_per_kwh", 8.75)
@@ -212,7 +217,11 @@ class LoopSimulationService:
             completed_count = 0
             alerts_count = 0
             accumulated_readings = []
-            hourly_processed_df = []
+
+            tot_baseline_kwh = 0.0
+            tot_predicted_kwh = 0.0
+            tot_optimized_kwh = 0.0
+            max_peak_kw = 0.0
 
             for dt in date_range:
                 dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -234,8 +243,8 @@ class LoopSimulationService:
                                 supabase_service.store_simulated_readings(scenario_id, accumulated_readings)
                             return
 
-                    category = b["category"]
-                    base_kw = b["base_kw"]
+                    category = b.get("category", "academic")
+                    base_kw = b.get("base_kw", 150.0)
                     b_id = b["id"]
 
                     day_type, time_window = ContextAwareAnomalyEngine._classify_day_and_window(dt.to_pydatetime(), category)
@@ -256,6 +265,12 @@ class LoopSimulationService:
                     predicted_kwh = round(simulated_raw_kwh * (1.0 + 0.015 * max(0.0, outdoor_temp - 30.0)), 2)
                     saving_pct = abs(req.temperature_delta) * 0.06
                     optimized_kwh = round(predicted_kwh * (1.0 - saving_pct), 2)
+
+                    tot_baseline_kwh += simulated_raw_kwh
+                    tot_predicted_kwh += predicted_kwh
+                    tot_optimized_kwh += optimized_kwh
+                    if simulated_raw_kwh > max_peak_kw:
+                        max_peak_kw = simulated_raw_kwh
 
                     # Real-time Anomaly Detection for this hourly reading
                     deviation_kwh = max(0.0, round(simulated_raw_kwh - expected_kwh, 2))
@@ -327,17 +342,31 @@ class LoopSimulationService:
 
                     db.commit()
 
-            # Final flush & completion
+            # Final flush & completion validation
             if accumulated_readings:
                 supabase_service.store_simulated_readings(scenario_id, accumulated_readings)
 
-            db_final = db.query(SimulationScenarioRunDB).filter(SimulationScenarioRunDB.scenario_id == scenario_id).first()
-            if db_final and db_final.status == "running":
-                db_final.status = "completed"
-                db_final.completed_at = datetime.now(timezone.utc).isoformat()
-                db.commit()
+            tot_saved_kwh = max(0.0, round(tot_predicted_kwh - tot_optimized_kwh, 2))
+            tot_saved_inr = round(tot_saved_kwh * tariff, 2)
+            tot_co2_reduced = round(tot_saved_kwh * carbon_factor, 2)
 
-            logger.info("Controlled simulation scenario '%s' completed successfully with %d records.", scenario_id, completed_count)
+            db_final = db.query(SimulationScenarioRunDB).filter(SimulationScenarioRunDB.scenario_id == scenario_id).first()
+            if db_final and db_final.status in ("running", "stopping"):
+                if completed_count != total_planned_records:
+                    db_final.status = "failed"
+                    db_final.failure_message = f"Incomplete simulation run. Expected {total_planned_records} records, but processed {completed_count}."
+                    logger.error("Simulation run '%s' FAILED completion check: %d / %d records.", scenario_id, completed_count, total_planned_records)
+                else:
+                    db_final.status = "completed"
+                    db_final.completed_at = datetime.now(timezone.utc).isoformat()
+                    db_final.total_baseline_kwh = round(tot_baseline_kwh, 2)
+                    db_final.total_predicted_kwh = round(tot_predicted_kwh, 2)
+                    db_final.total_optimized_kwh = round(tot_optimized_kwh, 2)
+                    db_final.total_saved_kwh = tot_saved_kwh
+                    db_final.total_saved_inr = tot_saved_inr
+                    db_final.total_co2_reduced_kg = tot_co2_reduced
+                    logger.info("Controlled simulation scenario '%s' COMPLETED 100%% (%d/%d records). Totals: Saved %f kWh, ₹%f", scenario_id, completed_count, total_planned_records, tot_saved_kwh, tot_saved_inr)
+                db.commit()
 
         except Exception as e:
             db.rollback()
@@ -657,10 +686,27 @@ class LoopSimulationService:
             if not sc:
                 raise ValueError(f"Scenario ID '{scenario_id}' not found.")
 
-            readings_count = db.query(SimulatedReadingDB).filter(
+            readings = db.query(SimulatedReadingDB).filter(
                 SimulatedReadingDB.scenario_id == scenario_id,
                 SimulatedReadingDB.data_source == "simulated"
-            ).count()
+            ).all()
+            readings_count = len(readings)
+
+            tot_baseline = sc.total_baseline_kwh or 0.0
+            tot_predicted = sc.total_predicted_kwh or 0.0
+            tot_optimized = sc.total_optimized_kwh or 0.0
+            tot_saved_kwh = sc.total_saved_kwh or 0.0
+            tot_saved_inr = sc.total_saved_inr or 0.0
+            tot_co2 = sc.total_co2_reduced_kg or 0.0
+
+            if (tot_predicted == 0.0 or tot_saved_kwh == 0.0) and readings_count > 0:
+                tot_baseline = round(sum(r.simulated_kwh for r in readings), 2)
+                tot_predicted = round(sum(r.predicted_kwh for r in readings), 2)
+                saving_pct = abs(sc.temperature_delta or 2.0) * 0.06
+                tot_optimized = round(tot_predicted * (1.0 - saving_pct), 2)
+                tot_saved_kwh = max(0.0, round(tot_predicted - tot_optimized, 2))
+                tot_saved_inr = round(tot_saved_kwh * 8.75, 2)
+                tot_co2 = round(tot_saved_kwh * 0.82, 2)
 
             months = json.loads(sc.months_run or "[]")
             b_ids = json.loads(sc.building_ids or "[]")
@@ -673,12 +719,12 @@ class LoopSimulationService:
                 temperature_delta=sc.temperature_delta,
                 occupancy_scale=sc.occupancy_scale,
                 include_solar=sc.include_solar,
-                total_baseline_kwh=sc.total_baseline_kwh or 0.0,
-                total_predicted_kwh=sc.total_predicted_kwh or 0.0,
-                total_optimized_kwh=sc.total_optimized_kwh or 0.0,
-                total_saved_kwh=sc.total_saved_kwh or 0.0,
-                total_saved_inr=sc.total_saved_inr or 0.0,
-                total_co2_reduced_kg=sc.total_co2_reduced_kg or 0.0,
+                total_baseline_kwh=tot_baseline,
+                total_predicted_kwh=tot_predicted,
+                total_optimized_kwh=tot_optimized,
+                total_saved_kwh=tot_saved_kwh,
+                total_saved_inr=tot_saved_inr,
+                total_co2_reduced_kg=tot_co2,
                 monthly_breakdown=[],
                 preprocessed_records_stored=readings_count,
                 created_at=sc.created_at.isoformat() if sc.created_at else "",
